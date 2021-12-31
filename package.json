@@ -1,0 +1,23 @@
+{
+  "name": "@react-three/p2",
+  "version": "0.0.0",
+  "description": "```shell npm install @react-three/p2 ```",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pmndrs/react-three-p2.git"
+  },
+  "keywords": [],
+  "author": "Joerg Jaeckel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pmndrs/react-three-p2/issues"
+  },
+  "homepage": "https://github.com/pmndrs/react-three-p2#readme",
+  "devDependencies": {
+    "@react-three/fiber": "^7.0.24"
+  }
+}
