@@ -1,1 +1,3 @@
-# react-three-p2
+```shell
+npm install @react-three/p2
+```
