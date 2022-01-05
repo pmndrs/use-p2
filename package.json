@@ -1,23 +1,68 @@
 {
   "name": "@react-three/p2",
-  "version": "0.0.0",
-  "description": "```shell npm install @react-three/p2 ```",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "version": "0.0.1",
+  "description": "2D physics based hooks for react-three-fiber",
+  "keywords": [
+    "p2",
+    "2D",
+    "three",
+    "react",
+    "react-three-fiber",
+    "physics"
+  ],
+  "author": "Joerg Jaeckel",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pmndrs/react-three-p2.git"
+    "url": "git+https://github.com/pmndrs/use-p2.git"
   },
-  "keywords": [],
-  "author": "Joerg Jaeckel",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/pmndrs/react-three-p2/issues"
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "rollup -c",
+    "eslint": "eslint .",
+    "eslint-fix": "eslint --fix .",
+    "prebuild": "tsc",
+    "prettier": "prettier --list-different .",
+    "prettier-fix": "prettier --write .",
+    "test": "echo tests are missing",
+    "prepare": "husky install"
   },
-  "homepage": "https://github.com/pmndrs/react-three-p2#readme",
   "devDependencies": {
-    "@react-three/fiber": "^7.0.24"
+    "@babel/core": "^7.16.5",
+    "@babel/plugin-transform-runtime": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-react": "^7.16.5",
+    "@babel/preset-typescript": "^7.16.5",
+    "@react-three/fiber": "^7.0.24",
+    "@rollup/plugin-babel": "^5.3.0",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-node-resolve": "^13.1.1",
+    "@types/react": "^17.0.37",
+    "@types/three": "^0.135.0",
+    "@typescript-eslint/eslint-plugin": "^5.7.0",
+    "@typescript-eslint/parser": "^5.7.0",
+    "eslint": "^8.5.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-react": "^7.27.1",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.1.2",
+    "p2-es": "^0.7.2",
+    "prettier": "^2.5.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "rollup": "^2.61.1",
+    "rollup-plugin-web-worker-loader": "^1.6.1",
+    "three": "^0.135.0",
+    "typescript": "^4.5.4"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": "eslint --cache --fix",
+    "*.{js,jsx,ts,tsx,md}": "prettier --write"
+  },
+  "peerDependencies": {
+    "react": ">=17.0",
+    "react-dom": ">=17.0"
   }
 }
