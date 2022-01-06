@@ -1,4 +1,4 @@
-import {useCircle, useRaycastClosest} from '@react-three/p2'
+import {useCapsule, useRaycastClosest} from '@react-three/p2'
 import React, {useEffect, useState, useRef} from 'react'
 import type {PropsWithChildren} from 'react'
 import {useControls} from '../hooks'
@@ -37,9 +37,10 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
 
     const {camera} = useThree()
 
-    const [ref, playerApi] = useCircle(() => ({
+    const [ref, playerApi] = useCapsule(() => ({
         mass: 1,
-        args: [0.8],
+        args: [1, 0.4],
+        angle: Math.PI/2,
         fixedRotation: true,
         position,
     }))
@@ -80,7 +81,7 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
 
         playerApi.applyForce(vec2.fromValues((~~(right) - ~~(left)) * 10, 0), vec2.create())
 
-        if (isGrounded.current && forward) playerApi.applyImpulse([0, 2], vec2.create())
+        if (isGrounded.current && forward) playerApi.applyImpulse([0, 3], vec2.create())
 
         if (velocity.current[1] < 0.5) playerApi.applyForce([0, -15], vec2.create())
 
@@ -90,8 +91,8 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
         <group ref={ref} dispose={null} name={'player'}>
             <mesh geometry={nodes.character_duck.geometry}
                   material={materials.White}
-                  position={[0, -0.8, 0]}
-                  rotation-y={Math.PI / 2}
+                  position={[-0.8, 0, 0]}
+                  rotation={[Math.PI / 2,0,-Math.PI / 2]}
             >
                 <mesh
                     geometry={nodes.character_duckArmLeft.geometry}
