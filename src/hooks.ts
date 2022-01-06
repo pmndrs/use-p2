@@ -1,6 +1,6 @@
 import {useLayoutEffect, useContext, useRef, useMemo, useEffect, useState} from 'react'
-import {DynamicDrawUsage, InstancedMesh, MathUtils, Object3D, Vector3} from 'three'
-import type {Quaternion} from 'three'
+import {DynamicDrawUsage, InstancedMesh, MathUtils, Object3D} from 'three'
+import type {Vector3, Quaternion} from 'three'
 import {context, debugContext} from './setup'
 
 import type {ContactMaterialOptions} from 'p2-es'
@@ -63,17 +63,17 @@ export type BodyPropsArgsRequired<T extends any[] = unknown[]> = BodyProps<T> & 
 }
 
 export type ShapeType =
+    | 'Box'
     | 'Circle'
+    | 'Capsule'
     | 'Particle'
     | 'Plane'
     | 'Convex'
     | 'Line'
-    | 'Box'
-    | 'Capsule'
     | 'Heightfield'
 export type BodyShapeType = ShapeType | 'Compound'
 
-export type CylinderArgs = [radiusTop?: number, radiusBottom?: number, height?: number, numSegments?: number]
+export type CapsuleArgs = [length?: number, radius?: number]
 export type PlaneArgs = [width?: number, height?: number, widthSegments?: number, heightSegments?: number]
 export type CircleArgs = [radius: number]
 export type TrimeshArgs = [vertices: ArrayLike<number>, indices: ArrayLike<number>]
@@ -91,7 +91,7 @@ export type ConvexPolyhedronArgs<V extends VectorTypes = VectorTypes> = [
 
 export type PlaneProps = BodyProps
 export type BoxProps = BodyProps<Duplet>
-export type CylinderProps = BodyProps<CylinderArgs>
+export type CapsuleProps = BodyProps<CapsuleArgs>
 export type ParticleProps = BodyProps
 export type CircleProps = BodyProps<CircleArgs>
 export type TrimeshProps = BodyPropsArgsRequired<TrimeshArgs>
@@ -456,10 +456,6 @@ function useBody<B extends BodyProps<unknown[]>>(
     return [ref, api]
 }
 
-function makeTriplet(v: Vector3 | Triplet): Triplet {
-    return v instanceof Vector3 ? [v.x, v.y, v.z] : v
-}
-
 export function usePlane(fn: GetByIndex<PlaneProps>, fwdRef: Ref<Object3D> = null, deps?: DependencyList) {
     return useBody('Plane', fn, () => [], fwdRef, deps)
 }
@@ -469,13 +465,14 @@ export function useBox(fn: GetByIndex<BoxProps>, fwdRef: Ref<Object3D> = null, d
     return useBody('Box', fn, (args = defaultBoxArgs): Duplet => args, fwdRef, deps)
 }
 
-/*export function useCylinder(
-  fn: GetByIndex<CylinderProps>,
+export function useCapsule(
+  fn: GetByIndex<CapsuleProps>,
   fwdRef: Ref<Object3D> = null,
   deps?: DependencyList,
 ) {
-  return useBody('Cylinder', fn, (args = [] as []) => args, fwdRef, deps)
-}*/
+    return useBody('Capsule', fn, (args = [] as []) => args, fwdRef, deps)
+}
+
 export function useHeightfield(
     fn: GetByIndex<HeightfieldProps>,
     fwdRef: Ref<Object3D> = null,
@@ -768,10 +765,6 @@ export interface TopDownVehicleProps {
     indexForwardAxis?: number
     indexRightAxis?: number
     indexUpAxis?: number
-}
-
-function isString(v: unknown): v is string {
-    return typeof v === 'string'
 }
 
 export function useTopDownVehicle(

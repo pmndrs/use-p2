@@ -1,9 +1,14 @@
 import { Body, Circle, Particle, Plane, Convex, Line, Box, Capsule, Heightfield, Material, vec2 } from 'p2-es'
 
 function createShape(type, args) {
+    console.log(type,args)
     switch (type) {
+        case 'Box':
+            return new Box({width: args[0], height: args[1]})
         case 'Circle':
             return new Circle({radius: args[0]})
+        case 'Capsule':
+            return new Capsule({length: args[0], radius: args[1]})
         case 'Particle':
             return new Particle() // no args
         case 'Plane':
@@ -12,10 +17,6 @@ function createShape(type, args) {
             return new Convex() // TODO args?
         case 'Line':
             return new Line() // TODO args?
-        case 'Box':
-            return new Box({width: args[0], height: args[1]})
-        case 'Capsule':
-            return new Capsule() // TODO args?
         case 'Heightfield':
             return new Heightfield(...args) // [ Array data, options: {minValue, maxValue, elementSize}  ] = args
     }

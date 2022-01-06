@@ -1,11 +1,11 @@
 import {
     Mesh,
-    BufferGeometry,
     Vector3,
-    LineBasicMaterial,
-    Line as THREELine,
 } from 'three'
-import type {Body, Shape as ShapeType, Circle} from 'p2-es'
+import { Line2 } from 'three/examples/jsm/lines/Line2.js'
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
+import type {Body, Shape as ShapeType, Capsule, Circle} from 'p2-es'
 import type {Scene, Color} from 'three'
 import {Shape} from 'p2-es'
 
@@ -25,34 +25,51 @@ export default function cannonDebugger(
     {normalIndex = 0, color = 0x00ff00, scale = 1, onInit, onUpdate, autoUpdate}: DebugOptions = {}
 ) {
     const _meshes: Mesh[] = []
-    const _material = new LineBasicMaterial({color: color ?? 0x00ff00, depthTest: false})
+    const _lineMaterial = new LineMaterial({color: 0xffffff, linewidth: 0.002, depthTest: false})
+
     const _boxPoints = new Array(5).fill({}).map((u, i) => {
         const arr = [0.7071 * Math.cos(i * 2 * Math.PI / 4 + Math.PI / 4), 0.7071 * Math.sin(i * 2 * Math.PI / 4 + Math.PI / 4)]
         arr.splice(normalIndex, 0, 0)
-        return new Vector3(...arr)
+        return arr
     }) // generate box with side = 1 from circle equation
-    const _boxGeometry = new BufferGeometry().setFromPoints(_boxPoints)
+    const _boxGeometry = new LineGeometry().setPositions(_boxPoints.flat(1))
+
     const _circlePrecision = 24
     const _circlePoints = new Array(_circlePrecision + 1).fill({}).map((u, i) => {
         const arr = [Math.cos(i * 2 * Math.PI / _circlePrecision), Math.sin(i * 2 * Math.PI / _circlePrecision)]
         arr.splice(normalIndex, 0, 0)
-        return new Vector3(...arr)
+        return arr
     })
-    const _circleGeometry = new BufferGeometry().setFromPoints(_circlePoints)
+    const _circleGeometry = new LineGeometry().setPositions(_circlePoints.flat(1))
+
+    const _capsulePoints = new Array(_circlePrecision + 1).fill({}).map((u, i) => {
+        const arr = [Math.sin(i * 2 * Math.PI / _circlePrecision), -Math.cos(i * 2 * Math.PI / _circlePrecision)]
+        arr.splice(normalIndex, 0, 0)
+        return arr
+    })
+    _capsulePoints.splice(_circlePrecision/2,0,_capsulePoints[_circlePrecision/2])
+    _capsulePoints.push(_capsulePoints[0])
+    // @ts-ignore
+    const _capsuleGeometry = new LineGeometry().setPositions(_capsulePoints.flat(1))
 
     function createMesh(shape: ShapeType): Mesh {
         let mesh = new Mesh()
-        const {BOX, CIRCLE} = Shape
+        const {BOX, CAPSULE, CIRCLE} = Shape
 
         switch (shape.type) {
             case BOX: {
                 // @ts-ignore
-                mesh = new THREELine(_boxGeometry, _material)
+                mesh = new Line2( _boxGeometry, _lineMaterial )
+                break
+            }
+            case CAPSULE: {
+                // @ts-ignore
+                mesh = new Line2( _capsuleGeometry, _lineMaterial )
                 break
             }
             case CIRCLE: {
                 // @ts-ignore
-                mesh = new THREELine(_circleGeometry, _material)
+                mesh = new Line2( _circleGeometry, _lineMaterial )
                 break
             }
         }
@@ -61,17 +78,27 @@ export default function cannonDebugger(
     }
 
     function scaleMesh(mesh: Mesh, shape: ShapeType | ComplexShape): void {
-        const {CIRCLE, BOX} = Shape
+        const {BOX, CAPSULE, CIRCLE} = Shape
         switch (shape.type) {
-            case CIRCLE: {
-                const {radius} = shape as Circle
-                mesh.scale.set(radius * scale, radius * scale, radius * scale)
-                break
-            }
             case BOX: {
                 // @ts-ignore
                 mesh.scale.copy({x: shape.width, y: shape.height, z: shape.height} as Vector3)
                 //mesh.scale.multiplyScalar(2 * scale)
+                break
+            }
+            case CAPSULE: {
+                const {length, radius} = shape as Capsule
+                const positions = _capsulePoints.flat(1) // changing geometry positions of regular line works, not so for line2
+                for ( let i = 0, l = positions.length; i < l; i ++ ) {
+                    positions[i] *= radius
+                    if ((i)%3 === 0) positions[i] += (length/2) * (i > l/2 - 1 && i < l - 3 ? -1 : 1)
+                }
+                mesh.geometry = new LineGeometry().setPositions(positions)
+                break
+            }
+            case CIRCLE: {
+                const {radius} = shape as Circle
+                mesh.scale.set(radius * scale, radius * scale, radius * scale)
                 break
             }
         }
@@ -80,10 +107,7 @@ export default function cannonDebugger(
 
     function typeMatch(mesh: Mesh, shape: ShapeType | ComplexShape): boolean {
         if (!mesh) return false
-        const {geometry} = mesh
-        return (
-            (geometry instanceof BufferGeometry && shape.type === Shape.BOX)
-        )
+        return mesh.type === 'Line2'
     }
 
     function updateMesh(index: number, shape: ShapeType | ComplexShape): boolean {
@@ -94,9 +118,9 @@ export default function cannonDebugger(
             if (mesh) scene.remove(mesh)
             _meshes[index] = mesh = createMesh(shape)
             didCreateNewMesh = true
+            scaleMesh(mesh, shape)
         }
 
-        scaleMesh(mesh, shape)
         return didCreateNewMesh
     }
 
