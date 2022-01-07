@@ -1,5 +1,5 @@
 import {Canvas} from '@react-three/fiber'
-import {Physics, Debug, useBox, useCapsule, useCircle, useParticle, usePlane} from '@react-three/p2'
+import {Physics, Debug, useBox, useCapsule, useCircle, useConvex, useParticle, usePlane} from '@react-three/p2'
 import {OrbitControls} from '@react-three/drei'
 import {vec2} from 'p2-es'
 import type {PropsWithChildren} from 'react'
@@ -29,6 +29,20 @@ function Circle() {
             <sphereGeometry />
             <meshNormalMaterial />
         </mesh>
+    )
+}
+
+function Convex() {
+    const vertices = [] as number[][]
+    for(let i=0, N=5; i<N; i++){
+        const a = 2*Math.PI / N * i
+        const vertex = [0.5*Math.cos(a), 0.5*Math.sin(a)]
+        vertices.push(vertex)
+    }
+    const [ref] = useConvex(() => ({mass: 1, position: [3.5, 5], args:[vertices]}))
+    return (
+        <group ref={ref}>
+        </group>
     )
 }
 
@@ -70,6 +84,7 @@ export default () => (
                 <Box />
                 <Circle />
                 <Capsule />
+                <Convex />
                 <ParticleSystem />
                 <Plane />
             </Debug>

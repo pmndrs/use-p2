@@ -76,6 +76,7 @@ export type BodyShapeType = ShapeType | 'Compound'
 export type CapsuleArgs = [length?: number, radius?: number]
 export type PlaneArgs = [width?: number, height?: number, widthSegments?: number, heightSegments?: number]
 export type CircleArgs = [radius: number]
+export type ConvexArgs = [vertices: number[][], axes?: number[][]]
 export type TrimeshArgs = [vertices: ArrayLike<number>, indices: ArrayLike<number>]
 export type HeightfieldArgs = [
     data: number[][],
@@ -92,6 +93,7 @@ export type ConvexPolyhedronArgs<V extends VectorTypes = VectorTypes> = [
 export type PlaneProps = BodyProps
 export type BoxProps = BodyProps<Duplet>
 export type CapsuleProps = BodyProps<CapsuleArgs>
+export type ConvexProps = BodyProps<ConvexArgs>
 export type ParticleProps = BodyProps
 export type CircleProps = BodyProps<CircleArgs>
 export type TrimeshProps = BodyPropsArgsRequired<TrimeshArgs>
@@ -473,6 +475,23 @@ export function useCapsule(
     return useBody('Capsule', fn, (args = [] as []) => args, fwdRef, deps)
 }
 
+export function useConvex(
+    fn: GetByIndex<ConvexProps>,
+    fwdRef: Ref<Object3D> = null,
+    deps?: DependencyList,
+) {
+    return useBody(
+        'Convex',
+        fn,
+        ([vertices, axes] = []) => [
+            vertices,
+            axes,
+        ],
+        fwdRef,
+        deps
+    )
+}
+
 export function useHeightfield(
     fn: GetByIndex<HeightfieldProps>,
     fwdRef: Ref<Object3D> = null,
@@ -498,34 +517,6 @@ export function useCircle(fn: GetByIndex<CircleProps>, fwdRef: Ref<Object3D> = n
         deps,
     )
 }
-
-/*export function useTrimesh(
-  fn: GetByIndex<TrimeshProps>,
-  fwdRef: Ref<Object3D> = null,
-  deps?: DependencyList,
-) {
-  return useBody<TrimeshProps>('Trimesh', fn, (args) => args, fwdRef, deps)
-}*/
-
-/*export function useConvexPolyhedron(
-  fn: GetByIndex<ConvexPolyhedronProps>,
-  fwdRef: Ref<Object3D> = null,
-  deps?: DependencyList,
-) {
-  return useBody<ConvexPolyhedronProps>(
-    'ConvexPolyhedron',
-    fn,
-    ([vertices, faces, normals, axes, boundingSphereRadius] = []): ConvexPolyhedronArgs<Triplet> => [
-      vertices && vertices.map(makeTriplet),
-      faces,
-      normals && normals.map(makeTriplet),
-      axes && axes.map(makeTriplet),
-      boundingSphereRadius,
-    ],
-    fwdRef,
-    deps,
-  )
-}*/
 export function useCompoundBody(
     fn: GetByIndex<CompoundBodyProps>,
     fwdRef: Ref<Object3D> = null,

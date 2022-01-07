@@ -63,7 +63,7 @@ export default function cannonDebugger(
 
     function createMesh(shape: ShapeType): Mesh {
         let mesh = new Mesh()
-        const {BOX, CAPSULE, CIRCLE, PARTICLE} = Shape
+        const {BOX, CAPSULE, CIRCLE, CONVEX, PARTICLE} = Shape
 
         switch (shape.type) {
             case BOX: {
@@ -76,6 +76,19 @@ export default function cannonDebugger(
             }
             case CIRCLE: {
                 mesh = new Line2( _circleGeometry, _lineMaterial )
+                break
+            }
+            case CONVEX: {
+                const positions: number[][] = []
+                // @ts-ignore
+                shape.vertices.map(v => {
+                    const w = [...v]
+                    w.splice(normalIndex,0,0)
+                    positions.push(w)
+                })
+                positions.push(positions[0])
+                const _convexGeometry = new LineGeometry().setPositions(positions.flat(1))
+                mesh = new Line2( _convexGeometry, _lineMaterial )
                 break
             }
             case PARTICLE: {
