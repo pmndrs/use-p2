@@ -73,32 +73,19 @@ export type ShapeType =
     | 'Heightfield'
 export type BodyShapeType = ShapeType | 'Compound'
 
-export type CapsuleArgs = [length?: number, radius?: number]
-export type PlaneArgs = [width?: number, height?: number, widthSegments?: number, heightSegments?: number]
-export type CircleArgs = [radius: number]
-export type ConvexArgs = [vertices: number[][], axes?: number[][]]
-export type TrimeshArgs = [vertices: ArrayLike<number>, indices: ArrayLike<number>]
-export type HeightfieldArgs = [
-    data: number[][],
-    options: { elementSize?: number; maxValue?: number; minValue?: number },
-]
-export type ConvexPolyhedronArgs<V extends VectorTypes = VectorTypes> = [
-    vertices?: V[],
-    faces?: number[][],
-    normals?: V[],
-    axes?: V[],
-    boundingSphereRadius?: number,
-]
+export type BoxArgs = [ width?: number, height?: number ]
+export type CapsuleArgs = [ length?: number, radius?: number ]
+export type CircleArgs = [ radius?: number ]
+export type ConvexArgs = [ vertices: number[][], axes?: number[][] ]
+export type LineArgs = [ length?: number ]
+export type HeightfieldArgs = [ heights: number[], options?: { elementWidth?: number; maxValue?: number; minValue?: number } ]
 
-export type PlaneProps = BodyProps
-export type BoxProps = BodyProps<Duplet>
+export type BoxProps = BodyProps<BoxArgs>
 export type CapsuleProps = BodyProps<CapsuleArgs>
-export type ConvexProps = BodyProps<ConvexArgs>
-export type ParticleProps = BodyProps
 export type CircleProps = BodyProps<CircleArgs>
-export type TrimeshProps = BodyPropsArgsRequired<TrimeshArgs>
+export type ConvexProps = BodyProps<ConvexArgs>
+export type LineProps = BodyProps<LineArgs>
 export type HeightfieldProps = BodyPropsArgsRequired<HeightfieldArgs>
-export type ConvexPolyhedronProps = BodyProps<ConvexPolyhedronArgs>
 
 export interface CompoundBodyProps extends BodyProps {
     shapes: BodyProps & { type: ShapeType }[]
@@ -458,13 +445,12 @@ function useBody<B extends BodyProps<unknown[]>>(
     return [ref, api]
 }
 
-export function usePlane(fn: GetByIndex<PlaneProps>, fwdRef: Ref<Object3D> = null, deps?: DependencyList) {
-    return useBody('Plane', fn, () => [], fwdRef, deps)
-}
-
-export function useBox(fn: GetByIndex<BoxProps>, fwdRef: Ref<Object3D> = null, deps?: DependencyList) {
-    const defaultBoxArgs: Duplet = [1, 1]
-    return useBody('Box', fn, (args = defaultBoxArgs): Duplet => args, fwdRef, deps)
+export function useBox(
+    fn: GetByIndex<BoxProps>,
+    fwdRef: Ref<Object3D> = null,
+    deps?: DependencyList
+) {
+    return useBody('Box', fn, (args = [] as BoxArgs) => args, fwdRef, deps)
 }
 
 export function useCapsule(
@@ -472,7 +458,14 @@ export function useCapsule(
   fwdRef: Ref<Object3D> = null,
   deps?: DependencyList,
 ) {
-    return useBody('Capsule', fn, (args = [] as []) => args, fwdRef, deps)
+    return useBody('Capsule', fn, (args = [] as CapsuleArgs) => args, fwdRef, deps)
+}
+export function useCircle(
+    fn: GetByIndex<CircleProps>,
+    fwdRef: Ref<Object3D> = null,
+    deps?: DependencyList
+) {
+    return useBody('Circle', fn, (args = [] as CircleArgs) => args, fwdRef, deps)
 }
 
 export function useConvex(
@@ -480,16 +473,7 @@ export function useConvex(
     fwdRef: Ref<Object3D> = null,
     deps?: DependencyList,
 ) {
-    return useBody(
-        'Convex',
-        fn,
-        ([vertices, axes] = []) => [
-            vertices,
-            axes,
-        ],
-        fwdRef,
-        deps
-    )
+    return useBody('Convex', fn, (args = [[],[]] as ConvexArgs) => args, fwdRef, deps)
 }
 
 export function useHeightfield(
@@ -497,26 +481,34 @@ export function useHeightfield(
     fwdRef: Ref<Object3D> = null,
     deps?: DependencyList,
 ) {
-    return useBody('Heightfield', fn, (args) => args, fwdRef, deps)
+    return useBody('Heightfield', fn, (args = [[],{}] as HeightfieldArgs) => args, fwdRef, deps)
+}
+
+export function useLine(
+    fn: GetByIndex<LineProps>,
+    fwdRef: Ref<Object3D> = null,
+    deps?: DependencyList
+) {
+    return useBody('Line', fn, (args = [] as LineArgs) => args, fwdRef, deps)
 }
 
 export function useParticle(
-    fn: GetByIndex<ParticleProps>,
+    fn: GetByIndex<BodyProps>,
     fwdRef: Ref<Object3D> = null,
     deps?: DependencyList,
 ) {
     return useBody('Particle', fn, () => [], fwdRef, deps)
 }
 
-export function useCircle(fn: GetByIndex<CircleProps>, fwdRef: Ref<Object3D> = null, deps?: DependencyList) {
-    return useBody('Circle', fn, (args: CircleArgs = [1]): CircleArgs => {
-            if (!Array.isArray(args)) throw new Error('useCircle args must be an array')
-            return [args[0]]
-        },
-        fwdRef,
-        deps,
-    )
+export function usePlane(
+    fn: GetByIndex<BodyProps>,
+    fwdRef: Ref<Object3D> = null,
+    deps?: DependencyList
+) {
+    return useBody('Plane', fn, () => [], fwdRef, deps)
 }
+
+
 export function useCompoundBody(
     fn: GetByIndex<CompoundBodyProps>,
     fwdRef: Ref<Object3D> = null,

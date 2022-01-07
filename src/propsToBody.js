@@ -15,9 +15,9 @@ function createShape(type, args) {
         case 'Plane':
             return new Plane()
         case 'Line':
-            return new Line()
+            return new Line({length: args[0]})
         case 'Heightfield':
-            return new Heightfield()
+            return new Heightfield({heights: args[0], elementWidth: args[1].elementWidth})
     }
 }
 

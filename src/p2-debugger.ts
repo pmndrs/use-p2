@@ -1,11 +1,9 @@
-import {
-    Mesh,
-    Vector3,
-} from 'three'
-import { Line2 } from 'three/examples/jsm/lines/Line2.js'
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js'
-import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js'
-import type {Body, Shape as ShapeType, Capsule, Circle} from 'p2-es'
+import {Mesh} from 'three'
+import type {Vector3} from 'three'
+import {Line2} from 'three/examples/jsm/lines/Line2.js'
+import {LineMaterial} from 'three/examples/jsm/lines/LineMaterial.js'
+import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry.js'
+import type {Body, Shape as ShapeType, Capsule, Circle, Line} from 'p2-es'
 import type {Scene, Color} from 'three'
 import {Shape} from 'p2-es'
 
@@ -25,8 +23,7 @@ export default function cannonDebugger(
     {normalIndex = 0, color = 0xffffff, scale = 1, onInit, onUpdate, autoUpdate}: DebugOptions = {}
 ) {
     const _meshes: Mesh[] = []
-    // @ts-ignore
-    const _lineMaterial = new LineMaterial({color, linewidth: 0.002, depthTest: false})
+    const _lineMaterial = new LineMaterial({color: 0xffffff, linewidth: 0.002, depthTest: false})
 
     const _boxPoints = new Array(5).fill({}).map((u, i) => {
         const arr = [0.7071 * Math.cos(i * 2 * Math.PI / 4 + Math.PI / 4), 0.7071 * Math.sin(i * 2 * Math.PI / 4 + Math.PI / 4)]
@@ -48,34 +45,37 @@ export default function cannonDebugger(
         arr.splice(normalIndex, 0, 0)
         return arr
     })
-    _capsulePoints.splice(_circlePrecision/2,0,_capsulePoints[_circlePrecision/2])
+    _capsulePoints.splice(_circlePrecision / 2, 0, _capsulePoints[_circlePrecision / 2])
     _capsulePoints.push(_capsulePoints[0])
     const _capsuleGeometry = new LineGeometry().setPositions(_capsulePoints.flat(1))
 
     const _particlePrecision = 6
     const _particleRadius = 0.05
     const _particlePoints = new Array(_particlePrecision + 1).fill({}).map((u, i) => {
-        const arr = [_particleRadius*Math.cos(i * 2 * Math.PI / _particlePrecision), _particleRadius*Math.sin(i * 2 * Math.PI / _particlePrecision)]
+        const arr = [_particleRadius * Math.cos(i * 2 * Math.PI / _particlePrecision), _particleRadius * Math.sin(i * 2 * Math.PI / _particlePrecision)]
         arr.splice(normalIndex, 0, 0)
         return arr
     })
     const _particleGeometry = new LineGeometry().setPositions(_particlePoints.flat(1))
 
+    const _linePositions = [[-0.5,0],[0.5,0]].map(v => { const temp = [...v]; temp.splice(normalIndex, 0, 0); return temp })
+    const _lineGeometry = new LineGeometry().setPositions(_linePositions.flat(1))
+
     function createMesh(shape: ShapeType): Mesh {
         let mesh = new Mesh()
-        const {BOX, CAPSULE, CIRCLE, CONVEX, PARTICLE} = Shape
+        const {BOX, CAPSULE, CIRCLE, CONVEX, HEIGHTFIELD, LINE, PARTICLE, PLANE} = Shape
 
         switch (shape.type) {
             case BOX: {
-                mesh = new Line2( _boxGeometry, _lineMaterial )
+                mesh = new Line2(_boxGeometry, _lineMaterial)
                 break
             }
             case CAPSULE: {
-                mesh = new Line2( _capsuleGeometry, _lineMaterial )
+                mesh = new Line2(_capsuleGeometry, _lineMaterial)
                 break
             }
             case CIRCLE: {
-                mesh = new Line2( _circleGeometry, _lineMaterial )
+                mesh = new Line2(_circleGeometry, _lineMaterial)
                 break
             }
             case CONVEX: {
@@ -83,16 +83,34 @@ export default function cannonDebugger(
                 // @ts-ignore
                 shape.vertices.map(v => {
                     const w = [...v]
-                    w.splice(normalIndex,0,0)
+                    w.splice(normalIndex, 0, 0)
                     positions.push(w)
                 })
                 positions.push(positions[0])
                 const _convexGeometry = new LineGeometry().setPositions(positions.flat(1))
-                mesh = new Line2( _convexGeometry, _lineMaterial )
+                mesh = new Line2(_convexGeometry, _lineMaterial)
+                break
+            }
+            case HEIGHTFIELD: {
+                const positions: number[][] = []
+                // @ts-ignore
+                shape.heights.map((v, i) => {
+                    // @ts-ignore
+                    const w = [i*shape.elementWidth, v]
+                    w.splice(normalIndex, 0, 0)
+                    positions.push(w)
+                })
+                const _geometry = new LineGeometry().setPositions(positions.flat(1))
+                mesh = new Line2(_geometry, _lineMaterial)
+                break
+            }
+            case LINE:
+            case PLANE: {
+                mesh = new Line2(_lineGeometry, _lineMaterial)
                 break
             }
             case PARTICLE: {
-                mesh = new Line2( _particleGeometry, _lineMaterial )
+                mesh = new Line2(_particleGeometry, _lineMaterial)
                 break
             }
         }
@@ -101,7 +119,7 @@ export default function cannonDebugger(
     }
 
     function scaleMesh(mesh: Mesh, shape: ShapeType | ComplexShape): void {
-        const {BOX, CAPSULE, CIRCLE} = Shape
+        const {BOX, CAPSULE, CIRCLE, LINE, PLANE} = Shape
         switch (shape.type) {
             case BOX: {
                 // @ts-ignore
@@ -112,9 +130,9 @@ export default function cannonDebugger(
             case CAPSULE: {
                 const {length, radius} = shape as Capsule
                 const positions = _capsulePoints.flat(1) // changing geometry positions of regular line works, not so for line2
-                for ( let i = 0, l = positions.length; i < l; i ++ ) {
+                for (let i = 0, l = positions.length; i < l; i++) {
                     positions[i] *= radius
-                    if ((i)%3 === 0) positions[i] += (length/2) * (i > l/2 - 1 && i < l - 3 ? -1 : 1)
+                    if ((i) % 3 === 0) positions[i] += (length / 2) * (i > l / 2 - 1 && i < l - 3 ? -1 : 1)
                 }
                 mesh.geometry = new LineGeometry().setPositions(positions)
                 break
@@ -122,6 +140,16 @@ export default function cannonDebugger(
             case CIRCLE: {
                 const {radius} = shape as Circle
                 mesh.scale.set(radius * scale, radius * scale, radius * scale)
+                break
+            }
+
+            case LINE: {
+                const {length} = shape as Line
+                mesh.scale.set(length * scale, length * scale, length * scale)
+                break
+            }
+            case PLANE: {
+                mesh.scale.set(100 * scale, 100 * scale, 100 * scale)
                 break
             }
         }
