@@ -73,7 +73,7 @@ const propsToBody = (uuid, props, type) => {
 
     vec2.set(body.position, position[0], position[1])
     body.angle = angle
-    body.velocity.set(velocity[0], velocity[1])
+    vec2.set(body.velocity, velocity[0], velocity[1])
     body.angularVelocity = angularVelocity
     return body
 }

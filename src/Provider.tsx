@@ -10,7 +10,7 @@ import type {PropsWithChildren} from 'react'
 import type {Object3D} from 'three'
 
 import type {AtomicName, Buffers, PropValue, ProviderContext, Refs} from './setup'
-import {Duplet} from './hooks'
+import type {Duplet} from './hooks'
 
 // @ts-expect-error Types are not setup for this yet
 import CannonWorker from '../src/worker'
@@ -158,7 +158,7 @@ export function Provider({
                              normalIndex = 0,
                              broadphase = 'Naive',
                              children,
-                             defaultContactMaterial = {restitution: 0, friction: 0.3},
+                             //defaultContactMaterial = {restitution: 0, friction: 0.3},
                              gravity = [0, -9.81],
                              iterations = 5,
                              quatNormalizeFast = false,

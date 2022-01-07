@@ -1,6 +1,8 @@
 import {Canvas} from '@react-three/fiber'
-import {Physics, Debug, useBox, useCapsule, useCircle, usePlane} from '@react-three/p2'
-import {OrbitControls} from "@react-three/drei";
+import {Physics, Debug, useBox, useCapsule, useCircle, useParticle, usePlane} from '@react-three/p2'
+import {OrbitControls} from '@react-three/drei'
+import {vec2} from 'p2-es'
+import type {PropsWithChildren} from 'react'
 
 function Box() {
     const [ref] = useBox(() => ({mass: 1, position: [0, 2]}))
@@ -20,7 +22,7 @@ function Capsule() {
     )
 }
 
-function Ball() {
+function Circle() {
     const [ref] = useCircle(() => ({mass: 1, position: [4, 2]}))
     return (
         <mesh ref={ref}>
@@ -28,6 +30,26 @@ function Ball() {
             <meshNormalMaterial />
         </mesh>
     )
+}
+
+function Particle({position, velocity}: PropsWithChildren<{ position: [x: number, y: number], velocity: [x: number, y: number] }>) {
+    const [ref] = useParticle(() => ({mass: 0.01, position, velocity}))
+    return (
+        <group ref={ref}>
+        </group>
+    )
+}
+
+function ParticleSystem() {
+    const arr = new Array(10)
+        .fill([])
+        .map(() => {
+            const a = vec2.fromValues(-1+Math.random()*3, 3+Math.random()*3)
+            return a
+        })
+    return <>
+        {arr.map((p,i) => <Particle position={p} velocity={p} key={i} />)}
+    </>
 }
 
 function Plane() {
@@ -46,8 +68,9 @@ export default () => (
         <Physics normalIndex={2}>
             <Debug normalIndex={2}>
                 <Box />
-                <Ball />
+                <Circle />
                 <Capsule />
+                <ParticleSystem />
                 <Plane />
             </Debug>
         </Physics>

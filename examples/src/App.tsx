@@ -48,7 +48,7 @@ function Intro() {
         </Routes>
       </Suspense>
       <Demos />
-      <a href="https://github.com/pmndrs/use-cannon" style={{ color: 'white' }}>
+      <a href="https://github.com/pmndrs/use-p2" style={{ color: 'white' }}>
         Github
       </a>
     </Page>

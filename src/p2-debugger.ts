@@ -22,10 +22,11 @@ export type DebugOptions = {
 export default function cannonDebugger(
     scene: Scene,
     bodies: Body[],
-    {normalIndex = 0, color = 0x00ff00, scale = 1, onInit, onUpdate, autoUpdate}: DebugOptions = {}
+    {normalIndex = 0, color = 0xffffff, scale = 1, onInit, onUpdate, autoUpdate}: DebugOptions = {}
 ) {
     const _meshes: Mesh[] = []
-    const _lineMaterial = new LineMaterial({color: 0xffffff, linewidth: 0.002, depthTest: false})
+    // @ts-ignore
+    const _lineMaterial = new LineMaterial({color, linewidth: 0.002, depthTest: false})
 
     const _boxPoints = new Array(5).fill({}).map((u, i) => {
         const arr = [0.7071 * Math.cos(i * 2 * Math.PI / 4 + Math.PI / 4), 0.7071 * Math.sin(i * 2 * Math.PI / 4 + Math.PI / 4)]
@@ -49,27 +50,36 @@ export default function cannonDebugger(
     })
     _capsulePoints.splice(_circlePrecision/2,0,_capsulePoints[_circlePrecision/2])
     _capsulePoints.push(_capsulePoints[0])
-    // @ts-ignore
     const _capsuleGeometry = new LineGeometry().setPositions(_capsulePoints.flat(1))
+
+    const _particlePrecision = 6
+    const _particleRadius = 0.05
+    const _particlePoints = new Array(_particlePrecision + 1).fill({}).map((u, i) => {
+        const arr = [_particleRadius*Math.cos(i * 2 * Math.PI / _particlePrecision), _particleRadius*Math.sin(i * 2 * Math.PI / _particlePrecision)]
+        arr.splice(normalIndex, 0, 0)
+        return arr
+    })
+    const _particleGeometry = new LineGeometry().setPositions(_particlePoints.flat(1))
 
     function createMesh(shape: ShapeType): Mesh {
         let mesh = new Mesh()
-        const {BOX, CAPSULE, CIRCLE} = Shape
+        const {BOX, CAPSULE, CIRCLE, PARTICLE} = Shape
 
         switch (shape.type) {
             case BOX: {
-                // @ts-ignore
                 mesh = new Line2( _boxGeometry, _lineMaterial )
                 break
             }
             case CAPSULE: {
-                // @ts-ignore
                 mesh = new Line2( _capsuleGeometry, _lineMaterial )
                 break
             }
             case CIRCLE: {
-                // @ts-ignore
                 mesh = new Line2( _circleGeometry, _lineMaterial )
+                break
+            }
+            case PARTICLE: {
+                mesh = new Line2( _particleGeometry, _lineMaterial )
                 break
             }
         }
