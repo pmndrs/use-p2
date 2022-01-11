@@ -6,6 +6,7 @@ const MarbleRun = { Component: lazy(() => import('./MarbleRun')) }
 const Simple = { Component: lazy(() => import('./Simple')) }
 const Shapes = { Component: lazy(() => import('./Shapes')) }
 const Constraints = { Component: lazy(() => import('./Constraints')) }
+const PingPong = { Component: lazy(() => import('./PingPong')) }
 
 export {
   TopDownVehicle,
@@ -14,4 +15,5 @@ export {
   Simple,
   Shapes,
   Constraints,
+  PingPong,
 }

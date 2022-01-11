@@ -24,9 +24,11 @@ export type Solver = 'GS' | 'Split'
 
 export type DefaultContactMaterial = Partial<Pick<ContactMaterial,
     | 'friction'
-    | 'frictionRelaxation'
+    | 'restitution'
+    | 'stiffness'
+    | 'relaxation'
     | 'frictionStiffness'
-    | 'restitution'>>
+    | 'frictionRelaxation'>>
 
 export type ProviderProps = PropsWithChildren<{
     allowSleep?: boolean
@@ -159,7 +161,7 @@ export function Provider({
                              normalIndex = 0,
                              broadphase = 'Naive',
                              children,
-                             //defaultContactMaterial = {restitution: 0, friction: 0.3},
+                             defaultContactMaterial = {restitution: 0, friction: 0.3},
                              gravity = [0, -9.81],
                              iterations = 5,
                              quatNormalizeFast = false,
@@ -171,7 +173,6 @@ export function Provider({
                              tolerance = 0.001,
                          }: ProviderProps): JSX.Element {
     const {invalidate} = useThree()
-    //const [worker] = useState<Worker>(() => new Worker(new URL('./worker.js', import.meta.url)));
     const [worker] = useState<Worker>(() => new CannonWorker() as Worker)
     const [refs] = useState<Refs>({})
     const [buffers] = useState<Buffers>(() => ({
@@ -204,7 +205,7 @@ export function Provider({
                 allowSleep,
                 axisIndex,
                 normalIndex,
-                //defaultContactMaterial,
+                defaultContactMaterial,
                 quatNormalizeFast,
                 quatNormalizeSkip,
                 solver,

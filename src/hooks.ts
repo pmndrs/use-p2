@@ -53,7 +53,7 @@ export type BodyProps<T extends any[] = unknown[]> = Partial<AtomicProps> &
     onCollideBegin?: (e: CollideBeginEvent) => void
     onCollideEnd?: (e: CollideEndEvent) => void
     quaternion?: Quad
-    rotation?: Triplet
+    angle?: number
     type?: 'Dynamic' | 'Static' | 'Kinematic'
 }
 
@@ -351,11 +351,11 @@ function useBody<B extends BodyProps<unknown[]>>(
             return {
                 set: (angle: number) => {
                     const uuid = getUUID(ref, index)
-                    uuid && worker.postMessage({op, props: angle, uuid})
+                    uuid && worker.postMessage({op, props: [angle], uuid})
                 },
                 copy: (angle: number) => {
                     const uuid = getUUID(ref, index)
-                    uuid && worker.postMessage({op, props: angle, uuid})
+                    uuid && worker.postMessage({op, props: [angle], uuid})
                 },
                 subscribe: (callback: (value: number) => void) => {
                     const id = incrementingId++

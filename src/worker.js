@@ -45,7 +45,8 @@ function emitBeginContact({bodyA, bodyB, contactEquations, ...rest}) {
         bodyA: bodyA.uuid,
         bodyB: bodyB.uuid,
         target: bodyB.uuid,
-        contacts: contactEquations.map(({normalA, contactPointA, contactPointB, index, ...c}) => {
+        contacts: contactEquations.map((contactEquation) => {
+            const {normalA, contactPointA, contactPointB, index, ...c} = contactEquation
             const contactPoint = []
             const contactPoint2 = []
             vec2.add(contactPoint, c.bodyA.position, contactPointA)
@@ -57,7 +58,7 @@ function emitBeginContact({bodyA, bodyB, contactEquations, ...rest}) {
                 rj: contactPointB,
                 bi: bodyA.uuid,
                 bj: bodyB.uuid,
-                //impactVelocity: contactEquation.getVelocityAlongNormal(),
+                impactVelocity: contactEquation.getVelocityAlongNormal(),
                 // World position of the contact
                 contactPoint: contactPoint,
                 contactPoint2: contactPoint2,
@@ -239,8 +240,8 @@ self.onmessage = (e) => {
         case 'setQuaternion':
             state.bodies[uuid].quaternion.set(props[0], props[1], props[2], props[3])
             break
-        case 'setRotation':
-            state.bodies[uuid].quaternion.setFromEuler(props[0], props[1], props[2])
+        case 'setAngle':
+            state.bodies[uuid].angle = props[0]
             break
         case 'setVelocity':
             state.bodies[uuid].velocity = [props[0], props[1]]

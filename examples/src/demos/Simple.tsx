@@ -1,8 +1,15 @@
-import {Canvas} from '@react-three/fiber'
+import {Canvas, useFrame} from '@react-three/fiber'
 import {Physics, useBox, useCircle} from '@react-three/p2'
 
 function Box() {
-    const [ref] = useBox(() => ({mass: 0, position: [0, -2]}))
+    const [ref, api] = useBox(() => ({
+        type: 'Kinematic',
+        position: [0, -2],
+        angle: 0,
+    }))
+    useFrame((state) => {
+        api.angle.set(Math.sin(state.clock.elapsedTime*10)/10)
+    })
     return (
         <mesh ref={ref}>
             <boxGeometry />

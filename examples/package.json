@@ -5,11 +5,13 @@
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {
+    "@pmndrs/branding": "^0.0.8",
     "@react-spring/three": "^9.4.1",
     "@react-three/drei": "^8.3.1",
     "@react-three/fiber": "^7.0.24",
     "@react-three/p2": "file:../",
     "lerp": "^1.0.3",
+    "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
     "nice-color-palettes": "3.0.0",
     "postprocessing": "^6.23.3",
@@ -20,6 +22,7 @@
     "styled-components": "^5.3.0",
     "three": "^0.135.0",
     "three-stdlib": "^2.6.1",
+    "valtio": "^1.2.8",
     "zustand": "^3.6.8"
   },
   "scripts": {

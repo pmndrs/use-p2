@@ -12,9 +12,9 @@ React hooks for [p2-es](https://github.com/pmndrs/p2-es). Use this in combinatio
 - [x] useBox
 - [x] useCapsule
 - [x] useCircle
-- [ ] useConvex
-- [ ] useHeightfield
-- [ ] useLine
+- [x] useConvex
+- [x] useHeightfield
+- [x] useLine
 - [x] useParticle
 - [x] usePlane
 
@@ -29,10 +29,10 @@ React hooks for [p2-es](https://github.com/pmndrs/p2-es). Use this in combinatio
 - [ ] Spring?
 #### Constraints
 - [x] DistanceConstraint
-- [ ] GearConstraint
-- [ ] LockConstraint
-- [ ] PrismaticConstraint
-- [ ] RevoluteConstraint
+- [x] GearConstraint
+- [x] LockConstraint
+- [x] PrismaticConstraint
+- [x] RevoluteConstraint
 
 #### Other
 - [x] useTopDownVehicle
