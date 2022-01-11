@@ -1,4 +1,4 @@
-import {useCapsule, useRaycastClosest} from '@react-three/p2'
+import {useCompoundBody, useRaycastClosest} from '@react-three/p2'
 import React, {useEffect, useState, useRef} from 'react'
 import type {PropsWithChildren} from 'react'
 import {useControls} from '../hooks'
@@ -37,12 +37,30 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
 
     const {camera} = useThree()
 
-    const [ref, playerApi] = useCapsule(() => ({
+    const [ref, playerApi] = useCompoundBody(() => ({
+        shapes: [
+            {
+                type: 'Circle',
+                args: [0.5],
+                position: [1.2,0]
+            },
+            {
+                type: 'Circle',
+                args: [0.4],
+                position: [0.4,0]
+            }
+        ],
         mass: 1,
-        args: [1, 0.4],
+        args: [0.8],
+        position,
         angle: Math.PI/2,
         fixedRotation: true,
-        position,
+        onCollideBegin: e => {
+            //console.log(e);
+            const normal = e.contacts[0].contactNormal
+            vec2.scale(normal, normal, -0.3)
+            playerApi.applyImpulse(normal)
+        }
     }))
 
     const [pos, setPos] = useState(vec2.create())
@@ -54,10 +72,13 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
     const velocity = useRef([0, 0])
 
     useRaycastClosest({
-        from: pos,
-        to: [pos[0], pos[1] - 1],
+        from: [pos[0], pos[1] + 0.2],
+        to: [pos[0], pos[1] - 0.2],
         skipBackfaces: true
-    }, e => isGrounded.current = e.hasHit, [pos])
+    }, e => {
+        //console.log(e);
+        isGrounded.current = e.hasHit
+    }, [pos])
 
     useEffect(() => {
 
@@ -67,9 +88,9 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
 
             setPos(p)
 
-            camera.position.lerp({x: p[0], y: p[1] + 10, z: 40} as THREE.Vector3, 0.05)
+            //camera.position.lerp({x: p[0], y: p[1] + 10, z: 40} as THREE.Vector3, 0.05)
 
-            camera.lookAt(p[0], p[1] + 1, 0)
+            //camera.lookAt(p[0], p[1] + 1, 0)
 
         })
 
@@ -91,7 +112,7 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
         <group ref={ref} dispose={null} name={'player'}>
             <mesh geometry={nodes.character_duck.geometry}
                   material={materials.White}
-                  position={[-0.8, 0, 0]}
+                  //position={[-0.8, 0, 0]}
                   rotation={[Math.PI / 2,0,-Math.PI / 2]}
             >
                 <mesh

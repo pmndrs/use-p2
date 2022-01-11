@@ -24,9 +24,16 @@ React hooks for [p2-es](https://github.com/pmndrs/p2-es). Use this in combinatio
 - [x] useRaycastClosest
 
 #### Springs
-- [ ] …
+- [ ] LinearSpring
+- [ ] RotationalSpring
+- [ ] Spring?
 #### Constraints
-- [ ] …
+- [x] DistanceConstraint
+- [ ] GearConstraint
+- [ ] LockConstraint
+- [ ] PrismaticConstraint
+- [ ] RevoluteConstraint
+
 #### Other
 - [x] useTopDownVehicle
 

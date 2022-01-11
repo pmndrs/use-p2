@@ -19,3 +19,8 @@ npm run dev
 ```
 
 And visit http://localhost:3000 in your browser
+
+## Common Bug Tracker
+This is just a place to track issues we found while developing games
+- [ ] Capsule triggers 3 impact events (might be p2-es problem)
+- [ ] Animate a material causes TS error and fail

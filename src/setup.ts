@@ -31,6 +31,7 @@ export type CollideBeginEvent = {
   type: 'collideBegin'
   target: Object3D
   body: Object3D
+  contacts: []
 }
 export type CollideEndEvent = {
   op: 'event'

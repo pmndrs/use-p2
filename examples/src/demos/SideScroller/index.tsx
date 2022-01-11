@@ -1,7 +1,7 @@
 import React from 'react'
 import type {PropsWithChildren} from 'react'
 import {Canvas, useLoader} from '@react-three/fiber'
-import {useGLTF, RoundedBox} from '@react-three/drei'
+import {useGLTF, RoundedBox, OrbitControls} from '@react-three/drei'
 import {Debug, Physics, useBox, usePlane} from '@react-three/p2'
 import type {BufferGeometry, Material} from 'three'
 import * as THREE from 'three'
@@ -9,6 +9,8 @@ import type {GLTF} from 'three-stdlib/loaders/GLTFLoader'
 import Player from './Player'
 import Spikes from './Spikes'
 import Heart from './Heart'
+import Crane from './Crane'
+import {Chain, StaticHandle} from './Bridge'
 import usePlayer from './PlayerZustand'
 
 const tileMaterials = [
@@ -73,10 +75,11 @@ const Scene = () => {
 
     return (
         <>
-            <Canvas shadows camera={{position: [0, 5, 30], fov: 24}}>
+            <Canvas shadows camera={{position: [12, 5, 40], fov: 24}}>
                 <color attach="background" args={['#171720']}/>
                 <ambientLight intensity={0.1}/>
-                <spotLight position={[10, 10, 20]} angle={0.5} intensity={1} castShadow penumbra={1}/>
+                <spotLight position={[10, 10, -50]} angle={0.75} intensity={0.5} lookAt={() => [0,0,0]} castShadow penumbra={1}/>
+                <OrbitControls enabled={true}/>
                 <mesh rotation-x={0} position={[-4, 1.5, -4]} scale={[2,2,2]}>
                     <planeGeometry args={[3.92, 1]}/>
                     <meshBasicMaterial map={logo} transparent={true}/>
@@ -84,10 +87,18 @@ const Scene = () => {
                 <Physics gravity={[0, -20]} normalIndex={normalIndex}>
                     <Debug normalIndex={normalIndex}>
                         <Block position={[2, 1]} />
-                        <Heart position={[2, 5]} />
-                        <Player position={[-1, 2]} />
+                        <Block position={[4, 3]} />
+                        <Block position={[12.5, 3]} />
+                        <Heart position={[12.3, 7]} />
+                        <Player position={[2, 3]} />
                         <Ground/>
                         <Spikes position={[-5, 1]} />
+                        <Crane position={[17, 8]} length={5} />
+                        <StaticHandle
+                            position={[5, 4]}
+                        >
+                            <Chain length={10}/>
+                        </StaticHandle>
                     </Debug>
                 </Physics>
             </Canvas>

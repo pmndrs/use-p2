@@ -1,4 +1,4 @@
-import {useRef} from 'react'
+import {useRef, useState} from 'react'
 import type {PropsWithChildren} from 'react'
 import {useGLTF} from '@react-three/drei'
 import {useBox} from '@react-three/p2'
@@ -7,6 +7,7 @@ import type {BufferGeometry, Material} from 'three'
 import type {Object3D} from 'three'
 import {useFrame} from '@react-three/fiber'
 import usePlayer from './PlayerZustand'
+import {Feathers} from './Feathers'
 
 const materials = [
     'BrownDark',
@@ -35,6 +36,8 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
 
     const [{loseLife}] = usePlayer()
 
+    const [feathers, setFeathers] = useState([[0,0]])
+
     const [ref] = useBox(() => ({
         mass: 0,
         args: [1, 2],
@@ -46,7 +49,13 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
         args: [1.8,1.2],
         collisionResponse: 0,
         position: [position[0], position[1] + 0.2],
-        onCollide: e => e.body.name === 'player' && loseLife()
+        onCollideBegin: e => {
+            if (e.body.name === 'player') {
+                loseLife()
+                // @ts-ignore
+                setFeathers((f) => [...f, ...new Array(10).fill(e.contacts[0].contactPoint)])
+            }
+        }
     }))
 
     useFrame(() => {
@@ -55,12 +64,15 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
     })
 
     return (
-        <group ref={ref} dispose={null}>
-            <group ref={meshRef} position={[0, -1, 0]}>
-                <mesh geometry={nodes.Cylinder048.geometry} material={materials.BrownDark} />
-                <mesh geometry={nodes.Cylinder048_1.geometry} material={materials.Black} />
-                <mesh geometry={nodes.Cylinder048_2.geometry} material={materials.Metal} />
+        <>
+            <group ref={ref} dispose={null}>
+                <group ref={meshRef} position={[0, -1, 0]} name={'spikes'}>
+                    <mesh geometry={nodes.Cylinder048.geometry} material={materials.BrownDark} />
+                    <mesh geometry={nodes.Cylinder048_1.geometry} material={materials.Black} />
+                    <mesh geometry={nodes.Cylinder048_2.geometry} material={materials.Metal} />
+                </group>
             </group>
-        </group>
+            <Feathers positions={feathers} />
+        </>
     )
 }

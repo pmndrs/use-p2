@@ -11,7 +11,7 @@ import {
     Spring,
     Ray,
     RaycastResult,
-    TopDownVehicle,
+    TopDownVehicle, GearConstraint, RevoluteConstraint, PrismaticConstraint,
 } from 'p2-es'
 
 const state = {
@@ -34,24 +34,51 @@ function syncBodies() {
     state.bodies = state.world.bodies.reduce((acc, body) => ({...acc, [body.uuid]: body}), {})
 }
 
-function emitBeginContact({bodyA, bodyB}) {
+function emitBeginContact({bodyA, bodyB, contactEquations, ...rest}) {
     if (!bodyA || !bodyB) return
+    //console.log(bodyA, bodyB, contactEquations, rest)
+
     /* eslint-disable-next-line no-restricted-globals */
-    self.postMessage({op: 'event', type: 'collideBegin', bodyA: bodyA.uuid, bodyB: bodyB.uuid})
+    self.postMessage({
+        op: 'event',
+        type: 'collideBegin',
+        bodyA: bodyA.uuid,
+        bodyB: bodyB.uuid,
+        target: bodyB.uuid,
+        contacts: contactEquations.map(({normalA, contactPointA, contactPointB, index, ...c}) => {
+            const contactPoint = []
+            const contactPoint2 = []
+            vec2.add(contactPoint, c.bodyA.position, contactPointA)
+            vec2.add(contactPoint2, c.bodyB.position, contactPointA)
+            const contactNormal = normalA //bodyA === body ? normalA : vec2.scale(normalA, normalA, -1)
+            return {
+                ni: normalA,
+                ri: contactPointA,
+                rj: contactPointB,
+                bi: bodyA.uuid,
+                bj: bodyB.uuid,
+                //impactVelocity: contactEquation.getVelocityAlongNormal(),
+                // World position of the contact
+                contactPoint: contactPoint,
+                contactPoint2: contactPoint2,
+                // Normal of the contact, relative to the colliding body
+                contactNormal: contactNormal,
+                index,
+            }
+        }),
+        collisionFilters: {
+            bodyFilterGroup: bodyA.collisionGroup,
+            bodyFilterMask: bodyA.collisionMask,
+            targetFilterGroup: bodyB.collisionGroup,
+            targetFilterMask: bodyB.collisionMask,
+        },
+    })
 }
 
 function emitEndContact({bodyA, bodyB}) {
     if (!bodyA || !bodyB) return
     /* eslint-disable-next-line no-restricted-globals */
     self.postMessage({op: 'event', type: 'collideEnd', bodyA: bodyA.uuid, bodyB: bodyB.uuid})
-}
-
-function normalizeAngle(angle) {
-    angle = angle % (2 * Math.PI);
-    if (angle < 0) {
-        angle += (2 * Math.PI);
-    }
-    return angle;
 }
 
 const _normal = [0,0,0]
@@ -207,7 +234,7 @@ self.onmessage = (e) => {
             break
         }
         case 'setPosition':
-            state.bodies[uuid].position.set(props[0], props[1], props[2])
+            vec2.set(state.bodies[uuid].position, props[0], props[1])
             break
         case 'setQuaternion':
             state.bodies[uuid].quaternion.set(props[0], props[1], props[2], props[3])
@@ -316,8 +343,33 @@ self.onmessage = (e) => {
                         optns,
                     )
                     break
+                case 'Gear':
+                    constraint = new GearConstraint(
+                        state.bodies[bodyA],
+                        state.bodies[bodyB],
+                        optns,
+                    )
+                    break
                 case 'Lock':
-                    constraint = new LockConstraint(state.bodies[bodyA], state.bodies[bodyB], optns)
+                    constraint = new LockConstraint(
+                        state.bodies[bodyA],
+                        state.bodies[bodyB],
+                        optns
+                    )
+                    break
+                case 'Revolute':
+                    constraint = new RevoluteConstraint(
+                        state.bodies[bodyA],
+                        state.bodies[bodyB],
+                        optns,
+                    )
+                    break
+                case 'Prismatic':
+                    constraint = new PrismaticConstraint(
+                        state.bodies[bodyA],
+                        state.bodies[bodyB],
+                        optns,
+                    )
                     break
                 default:
                     constraint = new Constraint(state.bodies[bodyA], state.bodies[bodyB], optns)

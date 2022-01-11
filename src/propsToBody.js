@@ -58,13 +58,13 @@ const propsToBody = (uuid, props, type) => {
 
     if (type === 'Compound') {
         shapes.forEach(({type, args, position, angle, material, ...extra}) => {
-            const shapeBody = body.addShape(
+            body.addShape(
                 createShape(type, args),
                 position ? vec2.fromValues(...position) : undefined,
                 angle,
             )
-            if (material) shapeBody.material = new Material(material)
-            Object.assign(shapeBody, extra)
+            if (material) body.material = new Material(material)
+            Object.assign(body, extra)
         })
     } else {
         body.addShape(createShape(type, args))

@@ -114,6 +114,7 @@ export type WorkerCollideBeginEvent = {
         type: 'collideBegin'
         bodyA: string
         bodyB: string
+        contacts: []
     }
 }
 export type WorkerCollideEndEvent = {
@@ -273,6 +274,7 @@ export function Provider({
                                 type: 'collideBegin',
                                 target: refs[e.data.bodyA],
                                 body: refs[e.data.bodyB],
+                                contacts: e.data.contacts,
                             })
                             callback = events[e.data.bodyB]?.collideBegin || noop
                             callback({
@@ -280,6 +282,7 @@ export function Provider({
                                 type: 'collideBegin',
                                 target: refs[e.data.bodyB],
                                 body: refs[e.data.bodyA],
+                                contacts: e.data.contacts,
                             })
                             break
                         case 'collideEnd':

@@ -5,7 +5,7 @@ import {LineMaterial} from 'three/examples/jsm/lines/LineMaterial.js'
 import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry.js'
 import type {Body, Shape as ShapeType, Capsule, Circle, Line} from 'p2-es'
 import type {Scene, Color} from 'three'
-import {Shape} from 'p2-es'
+import {Shape, vec2} from 'p2-es'
 
 type ComplexShape = ShapeType & { geometryId?: number }
 export type DebugOptions = {
@@ -178,6 +178,8 @@ export default function cannonDebugger(
     function update(): void {
         const meshes = _meshes
         let _p = []
+        const shapeOffset = vec2.create()
+        let shapeWorldPosition = vec2.create()
 
         let meshIndex = 0
 
@@ -190,17 +192,19 @@ export default function cannonDebugger(
                 if (mesh) {
                     // Get world position
                     //body.quaternion.vmult(body.shapeOffsets[i], shapeWorldPosition)
-                    //vec2.add(shapeWorldPosition, body.position, shapeWorldPosition)
+                    vec2.rotate(shapeOffset, shape.position, body.angle)
+                    //i === 1 && console.log(body.angle);
+                    vec2.add(shapeWorldPosition, body.position, shapeOffset)
 
                     // Get world quaternion
                     //body.quaternion.mult(body.shapeOrientations[i], shapeWorldQuaternion)
 
                     // Copy to meshes
                     // @ts-ignore
-                    _p = [...body.position]
-                    _p.splice(normalIndex, 0, 0)
+                    shapeWorldPosition = [...shapeWorldPosition]
+                    shapeWorldPosition.splice(normalIndex, 0, 0)
                     // @ts-ignore
-                    mesh.position.set(..._p)
+                    mesh.position.set(...shapeWorldPosition)
                     // @ts-ignore
                     mesh.quaternion.copy(body.quaternion)
 

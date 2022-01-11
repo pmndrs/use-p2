@@ -43,7 +43,6 @@ export type Triplet = [x: number, y: number, z: number]
 export type Duplet = [x: number, y: number]
 
 export type VectorProps = Record<VectorName, Duplet>
-type VectorTypes = Vector3 | Triplet
 
 export type Quad = [x: number, y: number, z: number, w: number]
 
@@ -136,40 +135,48 @@ export interface PublicApi extends WorkerApi {
 
 export type Api = [RefObject<Object3D>, PublicApi]
 
-export type ConstraintTypes = 'PointToPoint' | 'ConeTwist' | 'Distance' | 'Lock'
+export type ConstraintTypes = 'Distance' | 'Gear' | 'Lock' | 'Prismatic' | 'Revolute'
 
 export interface ConstraintOptns {
-    maxForce?: number
     collideConnected?: boolean
-    wakeUpBodies?: boolean
-}
-
-export interface PointToPointConstraintOpts extends ConstraintOptns {
-    pivotA: Triplet
-    pivotB: Triplet
-}
-
-export interface ConeTwistConstraintOpts extends ConstraintOptns {
-    pivotA?: Triplet
-    axisA?: Triplet
-    pivotB?: Triplet
-    axisB?: Triplet
-    angle?: number
-    twistAngle?: number
 }
 
 export interface DistanceConstraintOpts extends ConstraintOptns {
     distance?: number
+    localAnchorA?: Duplet
+    localAnchorB?: Duplet
+    maxForce?: number
 }
 
-export interface HingeConstraintOpts extends ConstraintOptns {
-    pivotA?: Triplet
-    axisA?: Triplet
-    pivotB?: Triplet
-    axisB?: Triplet
+export interface GearConstraintOpts extends ConstraintOptns {
+    angle?: number
+    ratio?: number
+    maxTorque?: number
 }
 
-export type LockConstraintOpts = ConstraintOptns
+export interface LockConstraintOpts extends ConstraintOptns {
+    localOffsetB?: Duplet
+    localAngleB?: number
+    maxForce?: number
+}
+
+export interface PrismaticConstraintOpts extends ConstraintOptns {
+    maxForce?: number
+    localAnchorA?: Duplet
+    localAnchorB?: Duplet
+    localAxisA?: Duplet
+    disableRotationalLock?: boolean
+    upperLimit?: number
+    lowerLimit?: number
+}
+
+export interface RevoluteConstraintOpts extends ConstraintOptns {
+    worldPivot?: Duplet
+    localPivotA?: Duplet
+    localPivotB?: Duplet
+    maxForce?: number
+}
+
 
 export interface SpringOptns {
     restLength?: number
@@ -602,24 +609,6 @@ function useConstraint<T extends 'Hinge' | ConstraintTypes>(
     return [refA, refB, api] as ConstraintORHingeApi<T>
 }
 
-export function usePointToPointConstraint(
-    bodyA: Ref<Object3D> = null,
-    bodyB: Ref<Object3D> = null,
-    optns: PointToPointConstraintOpts,
-    deps: DependencyList = [],
-) {
-    return useConstraint('PointToPoint', bodyA, bodyB, optns, deps)
-}
-
-export function useConeTwistConstraint(
-    bodyA: Ref<Object3D> = null,
-    bodyB: Ref<Object3D> = null,
-    optns: ConeTwistConstraintOpts,
-    deps: DependencyList = [],
-) {
-    return useConstraint('ConeTwist', bodyA, bodyB, optns, deps)
-}
-
 export function useDistanceConstraint(
     bodyA: Ref<Object3D> = null,
     bodyB: Ref<Object3D> = null,
@@ -629,13 +618,13 @@ export function useDistanceConstraint(
     return useConstraint('Distance', bodyA, bodyB, optns, deps)
 }
 
-export function useHingeConstraint(
+export function useGearConstraint(
     bodyA: Ref<Object3D> = null,
     bodyB: Ref<Object3D> = null,
-    optns: HingeConstraintOpts,
+    optns: GearConstraintOpts,
     deps: DependencyList = [],
 ) {
-    return useConstraint('Hinge', bodyA, bodyB, optns, deps)
+    return useConstraint('Gear', bodyA, bodyB, optns, deps)
 }
 
 export function useLockConstraint(
@@ -646,6 +635,25 @@ export function useLockConstraint(
 ) {
     return useConstraint('Lock', bodyA, bodyB, optns, deps)
 }
+
+export function usePrismaticConstraint(
+    bodyA: Ref<Object3D> = null,
+    bodyB: Ref<Object3D> = null,
+    optns: PrismaticConstraintOpts,
+    deps: DependencyList = [],
+) {
+    return useConstraint('Prismatic', bodyA, bodyB, optns, deps)
+}
+
+export function useRevoluteConstraint(
+    bodyA: Ref<Object3D> = null,
+    bodyB: Ref<Object3D> = null,
+    optns: RevoluteConstraintOpts,
+    deps: DependencyList = [],
+) {
+    return useConstraint('Revolute', bodyA, bodyB, optns, deps)
+}
+
 
 export function useSpring(
     bodyA: Ref<Object3D> = null,
