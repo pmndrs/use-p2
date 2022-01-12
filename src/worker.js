@@ -14,7 +14,7 @@ import {
     TopDownVehicle,
     GearConstraint,
     RevoluteConstraint,
-    PrismaticConstraint,
+    PrismaticConstraint, Body,
 } from 'p2-es'
 
 const state = {
@@ -195,7 +195,7 @@ self.onmessage = (e) => {
                 positions,
                 quaternions,
                 observations,
-                active: true, // TODO hacked true in cause there is no state.world.hasActiveBodies in p2 (see cannon-es)
+                active: state.world.bodies.some(body => body.sleepState !== Body.SLEEPING),
             }
             if (state.bodiesNeedSyncing) {
                 message.bodies = state.world.bodies.map((body) => body.uuid)
