@@ -1,6 +1,6 @@
 import {useLayoutEffect, useContext, useRef, useMemo, useEffect, useState} from 'react'
 import {DynamicDrawUsage, InstancedMesh, MathUtils, Object3D} from 'three'
-import type {Vector3, Quaternion} from 'three'
+import type {Quaternion} from 'three'
 import {context, debugContext} from './setup'
 
 import type {ContactMaterialOptions} from 'p2-es'
@@ -72,12 +72,12 @@ export type ShapeType =
     | 'Heightfield'
 export type BodyShapeType = ShapeType | 'Compound'
 
-export type BoxArgs = [ width?: number, height?: number ]
-export type CapsuleArgs = [ length?: number, radius?: number ]
-export type CircleArgs = [ radius?: number ]
-export type ConvexArgs = [ vertices: number[][], axes?: number[][] ]
-export type LineArgs = [ length?: number ]
-export type HeightfieldArgs = [ heights: number[], options?: { elementWidth?: number; maxValue?: number; minValue?: number } ]
+export type BoxArgs = [width?: number, height?: number]
+export type CapsuleArgs = [length?: number, radius?: number]
+export type CircleArgs = [radius?: number]
+export type ConvexArgs = [vertices: number[][], axes?: number[][]]
+export type LineArgs = [length?: number]
+export type HeightfieldArgs = [heights: number[], options?: { elementWidth?: number; maxValue?: number; minValue?: number }]
 
 export type BoxProps = BodyProps<BoxArgs>
 export type CapsuleProps = BodyProps<CapsuleArgs>
@@ -229,8 +229,9 @@ function subscribe<T extends SubscriptionName>(
 
 function prepare(object: Object3D, props: BodyProps) {
     object.userData = props.userData || {}
-    //object.position.set(...(props.position ? [props.position[0], 0, props.position[1]] : [0,0,0])) //TODO match normal
-    //object.rotation.set(...(props.angle ? [0, props.angle, 0] : [0, 0, 0])) //TODO match normal
+    // TODO match normal
+    // object.position.set(...(props.position ? [props.position[0], 0, props.position[1]] : [0,0,0]))
+    // object.rotation.set(...(props.angle ? [0, props.angle, 0] : [0, 0, 0]))
     object.updateMatrix()
 }
 
@@ -380,7 +381,7 @@ function useBody<B extends BodyProps<unknown[]>>(
                     const uuid = getUUID(ref, index)
                     uuid && worker.postMessage({op, props: [x, y], uuid})
                 },
-                copy: (vec:number[]) => {
+                copy: (vec: number[]) => {
                     const uuid = getUUID(ref, index)
                     uuid && worker.postMessage({op, props: [vec[0], vec[1]], uuid})
                 },
@@ -461,12 +462,13 @@ export function useBox(
 }
 
 export function useCapsule(
-  fn: GetByIndex<CapsuleProps>,
-  fwdRef: Ref<Object3D> = null,
-  deps?: DependencyList,
+    fn: GetByIndex<CapsuleProps>,
+    fwdRef: Ref<Object3D> = null,
+    deps?: DependencyList,
 ) {
     return useBody('Capsule', fn, (args = [] as CapsuleArgs) => args, fwdRef, deps)
 }
+
 export function useCircle(
     fn: GetByIndex<CircleProps>,
     fwdRef: Ref<Object3D> = null,
@@ -480,7 +482,7 @@ export function useConvex(
     fwdRef: Ref<Object3D> = null,
     deps?: DependencyList,
 ) {
-    return useBody('Convex', fn, (args = [[],[]] as ConvexArgs) => args, fwdRef, deps)
+    return useBody('Convex', fn, (args = [[], []] as ConvexArgs) => args, fwdRef, deps)
 }
 
 export function useHeightfield(
@@ -488,7 +490,7 @@ export function useHeightfield(
     fwdRef: Ref<Object3D> = null,
     deps?: DependencyList,
 ) {
-    return useBody('Heightfield', fn, (args = [[],{}] as HeightfieldArgs) => args, fwdRef, deps)
+    return useBody('Heightfield', fn, (args = [[], {}] as HeightfieldArgs) => args, fwdRef, deps)
 }
 
 export function useLine(

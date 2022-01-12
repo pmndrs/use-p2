@@ -5,11 +5,7 @@ function Box() {
     const [ref, api] = useBox(() => ({
         type: 'Kinematic',
         position: [0, -2],
-        angle: 0,
     }))
-    useFrame((state) => {
-        api.angle.set(Math.sin(state.clock.elapsedTime*10)/10)
-    })
     return (
         <mesh ref={ref}>
             <boxGeometry />

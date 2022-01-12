@@ -37,7 +37,6 @@ function syncBodies() {
 
 function emitBeginContact({bodyA, bodyB, contactEquations}) {
     if (!bodyA || !bodyB) return
-    /* eslint-disable-next-line no-restricted-globals */
     self.postMessage({
         op: 'event',
         type: 'collideBegin',
@@ -77,14 +76,11 @@ function emitBeginContact({bodyA, bodyB, contactEquations}) {
 
 function emitEndContact({bodyA, bodyB}) {
     if (!bodyA || !bodyB) return
-    /* eslint-disable-next-line no-restricted-globals */
     self.postMessage({op: 'event', type: 'collideEnd', bodyA: bodyA.uuid, bodyB: bodyB.uuid})
 }
 
 const _normal = [0,0,0]
-let why = 1
 
-/* eslint-disable-next-line no-restricted-globals */
 self.onmessage = (e) => {
     const {op, uuid, type, positions, quaternions, props} = e.data
     const broadphases = {NaiveBroadphase, SAPBroadphase}
@@ -117,7 +113,6 @@ self.onmessage = (e) => {
                 const contactPoint = []
                 vec2.add(contactPoint, bodyA.position, contactPointA)
                 const contactNormal = normalA //bodyA === body ? normalA : vec2.scale(normalA, normalA, -1)
-                /* eslint-disable-next-line no-restricted-globals */
                 self.postMessage({
                     op: 'event',
                     type: event.type,
@@ -201,7 +196,6 @@ self.onmessage = (e) => {
                 message.bodies = state.world.bodies.map((body) => body.uuid)
                 state.bodiesNeedSyncing = false
             }
-            /* eslint-disable-next-line no-restricted-globals */
             self.postMessage(message, [positions.buffer, quaternions.buffer])
             break
         }
@@ -319,13 +313,6 @@ self.onmessage = (e) => {
             break
         case 'addConstraint': {
             const [bodyA, bodyB, optns] = props
-            let {pivotA, pivotB, axisA, axisB, ...options} = optns
-
-            // is there a better way to enforce defaults?
-            pivotA = Array.isArray(pivotA) ? vec2.fromValues(...pivotA) : undefined
-            pivotB = Array.isArray(pivotB) ? vec2.fromValues(...pivotB) : undefined
-            axisA = Array.isArray(axisA) ? vec2.fromValues(...axisA) : undefined
-            axisB = Array.isArray(axisB) ? vec2.fromValues(...axisB) : undefined
 
             let constraint
 
@@ -460,8 +447,7 @@ self.onmessage = (e) => {
             state.rays[uuid] = () => {
                 const hasHit = state.world.raycast(options.result, ray)
                 hasHit && options.result.getHitPoint(hitPointWorld, ray)
-                const {body, shape, fraction, normal, faceIndex, isStopped} = options.result
-                /* eslint-disable-next-line no-restricted-globals */
+                const {body, shape} = options.result
                 self.postMessage({
                     op: 'event',
                     type: 'rayhit',

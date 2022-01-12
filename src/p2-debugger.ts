@@ -4,13 +4,13 @@ import {Line2} from 'three/examples/jsm/lines/Line2.js'
 import {LineMaterial} from 'three/examples/jsm/lines/LineMaterial.js'
 import {LineGeometry} from 'three/examples/jsm/lines/LineGeometry.js'
 import type {Body, Shape as ShapeType, Capsule, Circle, Line} from 'p2-es'
-import type {Scene, Color} from 'three'
+import type {Scene} from 'three'
 import {Shape, vec2} from 'p2-es'
 
 type ComplexShape = ShapeType & { geometryId?: number }
 export type DebugOptions = {
     normalIndex?: number
-    color?: string | number | Color
+    color?: number
     scale?: number
     onInit?: (body: Body, mesh: Mesh, shape: ShapeType) => void
     onUpdate?: (body: Body, mesh: Mesh, shape: ShapeType) => void
@@ -23,7 +23,9 @@ export default function cannonDebugger(
     {normalIndex = 0, color = 0xffffff, scale = 1, onInit, onUpdate, autoUpdate}: DebugOptions = {}
 ) {
     const _meshes: Mesh[] = []
-    const _lineMaterial = new LineMaterial({color: 0xffffff, linewidth: 0.002, depthTest: false})
+    const _lineMaterial = new LineMaterial({color, linewidth: 0.002, depthTest: false})
+    const _normal = [0, 0, 0]
+    _normal.splice(normalIndex, 1, 1)
 
     const _boxPoints = new Array(5).fill({}).map((u, i) => {
         const arr = [0.7071 * Math.cos(i * 2 * Math.PI / 4 + Math.PI / 4), 0.7071 * Math.sin(i * 2 * Math.PI / 4 + Math.PI / 4)]
@@ -58,7 +60,11 @@ export default function cannonDebugger(
     })
     const _particleGeometry = new LineGeometry().setPositions(_particlePoints.flat(1))
 
-    const _linePositions = [[-0.5,0],[0.5,0]].map(v => { const temp = [...v]; temp.splice(normalIndex, 0, 0); return temp })
+    const _linePositions = [[-0.5, 0], [0.5, 0]].map(v => {
+        const temp = [...v]
+        temp.splice(normalIndex, 0, 0)
+        return temp
+    })
     const _lineGeometry = new LineGeometry().setPositions(_linePositions.flat(1))
 
     function createMesh(shape: ShapeType): Mesh {
@@ -96,7 +102,7 @@ export default function cannonDebugger(
                 // @ts-ignore
                 shape.heights.map((v, i) => {
                     // @ts-ignore
-                    const w = [i*shape.elementWidth, v]
+                    const w = [i * shape.elementWidth, v]
                     w.splice(normalIndex, 0, 0)
                     positions.push(w)
                 })
@@ -156,7 +162,7 @@ export default function cannonDebugger(
     }
 
 
-    function typeMatch(mesh: Mesh, shape: ShapeType | ComplexShape): boolean {
+    function typeMatch(mesh: Mesh): boolean {
         if (!mesh) return false
         return mesh.type === 'Line2'
     }
@@ -165,7 +171,7 @@ export default function cannonDebugger(
         let mesh = _meshes[index]
         let didCreateNewMesh = false
 
-        if (!typeMatch(mesh, shape)) {
+        if (!typeMatch(mesh)) {
             if (mesh) scene.remove(mesh)
             _meshes[index] = mesh = createMesh(shape)
             didCreateNewMesh = true
@@ -177,7 +183,6 @@ export default function cannonDebugger(
 
     function update(): void {
         const meshes = _meshes
-        let _p = []
         const shapeOffset = vec2.create()
         let shapeWorldPosition = vec2.create()
 
@@ -205,8 +210,9 @@ export default function cannonDebugger(
                     shapeWorldPosition.splice(normalIndex, 0, 0)
                     // @ts-ignore
                     mesh.position.set(...shapeWorldPosition)
-                    // @ts-ignore
-                    mesh.quaternion.copy(body.quaternion)
+
+                    const s = Math.sin(body.angle * 0.5)
+                    mesh.quaternion.set(s * _normal[0], s * _normal[1], s * -_normal[2], -Math.cos(body.angle * 0.5))
 
                     if (didCreateNewMesh && onInit instanceof Function) onInit(body, mesh, shape)
                     if (!didCreateNewMesh && onUpdate instanceof Function) onUpdate(body, mesh, shape)

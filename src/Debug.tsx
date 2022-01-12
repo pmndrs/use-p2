@@ -2,7 +2,6 @@ import React, {useContext, useState, useRef, useMemo} from 'react'
 import type {DebugOptions} from './p2-debugger'
 import cannonDebugger from './p2-debugger'
 import {useFrame} from '@react-three/fiber'
-import type {Color} from 'three'
 import {Vector3, Quaternion, Euler, Scene} from 'three'
 import {vec2} from 'p2-es'
 import type {Body} from 'p2-es'
@@ -21,21 +20,19 @@ export type DebugInfo = { bodies: Body[]; refs: { [uuid: string]: Body } }
 export type DebugProps = {
     normalIndex: number
     children: React.ReactNode
-    color?: string | number | Color
+    color?: number
     scale?: number
     impl?: DebuggerInterface
 }
 
-const getYaw = (q: any) => Math.asin(-2 * (q.x * q.z - q.w * q.y))
-
 const v = new Vector3()
 const s = new Vector3(1, 1, 1)
 const q = new Quaternion()
-let _v = [];
+let _v = []
 
 export function Debug({
                           normalIndex = 0,
-                          color = 'green',
+                          color = 0xffffff,
                           scale = 1,
                           children,
                           impl = cannonDebugger,
@@ -60,21 +57,16 @@ export function Debug({
         }
 
         for (const uuid in debugInfo.refs) {
-            //refs[uuid]: mesh
+            // refs[uuid]: mesh
             // debugInfo.refs[uuid]: body
             refs[uuid].matrix.decompose(v, q, s)
             _v = [v.x, v.y, v.z]
             _v.splice(normalIndex, 1)
             // copy body position and angle from main to debug
-            // @ts-ignore
-            vec2.set(debugInfo.refs[uuid].position, ..._v)
+            vec2.set(debugInfo.refs[uuid].position, _v[0], _v[1])
 
             euler.setFromQuaternion(q)
             debugInfo.refs[uuid].angle = euler.toArray()[normalIndex]
-            // bypass quaternion of three mesh
-            // TODO we should reconstruct the quaternion in p2-debugger from angle and delete this
-            // @ts-ignore
-            debugInfo.refs[uuid].quaternion.copy(q);
         }
 
         instance.current.update()
@@ -85,7 +77,6 @@ export function Debug({
             add(id: string, props: BodyProps, type: BodyShapeType) {
                 const body = propsToBody(id, props, type)
                 debugInfo.bodies.push(body)
-                body.quaternion = new Quaternion();
                 debugInfo.refs[id] = body
             },
             remove(id: string) {

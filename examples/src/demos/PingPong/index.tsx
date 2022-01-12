@@ -1,11 +1,9 @@
-import { render } from "react-dom"
-import "./styles.css"
-import App from "./App"
-import Intro from "./Intro"
+import './styles.css'
+import App from './App'
+import Intro from './Intro'
 
-render(
+export default () => (
     <Intro>
         <App />
-    </Intro>,
-    document.getElementById("root"),
+    </Intro>
 )
