@@ -11,7 +11,10 @@ import {
     Spring,
     Ray,
     RaycastResult,
-    TopDownVehicle, GearConstraint, RevoluteConstraint, PrismaticConstraint,
+    TopDownVehicle,
+    GearConstraint,
+    RevoluteConstraint,
+    PrismaticConstraint,
 } from 'p2-es'
 
 const state = {
@@ -27,17 +30,13 @@ const state = {
     lastCallTime: undefined,
 }
 
-//state.world.on('impact', e => console.log('impact event', e))
-
 function syncBodies() {
     state.bodiesNeedSyncing = true
     state.bodies = state.world.bodies.reduce((acc, body) => ({...acc, [body.uuid]: body}), {})
 }
 
-function emitBeginContact({bodyA, bodyB, contactEquations, ...rest}) {
+function emitBeginContact({bodyA, bodyB, contactEquations}) {
     if (!bodyA || !bodyB) return
-    //console.log(bodyA, bodyB, contactEquations, rest)
-
     /* eslint-disable-next-line no-restricted-globals */
     self.postMessage({
         op: 'event',
@@ -83,6 +82,7 @@ function emitEndContact({bodyA, bodyB}) {
 }
 
 const _normal = [0,0,0]
+let why = 1
 
 /* eslint-disable-next-line no-restricted-globals */
 self.onmessage = (e) => {
@@ -102,7 +102,6 @@ self.onmessage = (e) => {
                 defaultContactMaterial,
                 quatNormalizeFast,
                 quatNormalizeSkip,
-                solver,
             } = props
             state.world.allowSleep = allowSleep
             state.world.gravity = [gravity[0], gravity[1]]
@@ -147,9 +146,6 @@ self.onmessage = (e) => {
 
             })
 
-            /*if (solver === 'Split') {
-              state.world.solver = new SplitSolver(new GSSolver())
-            }*/
 
             state.world.solver.tolerance = tolerance
             state.world.solver.iterations = iterations
@@ -176,17 +172,15 @@ self.onmessage = (e) => {
                 let b = state.world.bodies[i]
                 let p = [...b.position]
                 p.splice(state.world.normalIndex, 0, 0)
-                // TODO smarter placement of vars and there is a trick for this quaternion thing for sure
-                const why = state.world.normalIndex === 1 ? -1 : 1
-                var s = Math.sin(b.angle*0.5*why)
+                let s = Math.sin(b.angle*0.5)
 
                 positions[3 * i + 0] = p[0]
                 positions[3 * i + 1] = p[1]
                 positions[3 * i + 2] = p[2]
-                quaternions[4 * i + 0] = _normal[0] * s
-                quaternions[4 * i + 1] = _normal[1] * s
-                quaternions[4 * i + 2] = _normal[2] * s
-                quaternions[4 * i + 3] = Math.cos(b.angle*0.5*why)
+                quaternions[4 * i + 0] = s * _normal[0]
+                quaternions[4 * i + 1] = s * _normal[1]
+                quaternions[4 * i + 2] = s * -_normal[2]
+                quaternions[4 * i + 3] = -Math.cos(b.angle*0.5)
             }
             const observations = []
             for (const id of Object.keys(state.subscriptions)) {
@@ -194,7 +188,6 @@ self.onmessage = (e) => {
                 let object = state[target]
                 if (!object || !object[uuid]) continue
                 let value = object[uuid][type]
-                //if (value instanceof vec2) value = value.toArray()
                 observations.push([id, value, type])
             }
             const message = {
