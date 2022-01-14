@@ -41,6 +41,7 @@ const propsToBody = (uuid, props, type) => {
         shapes,
         onCollide,
         collisionResponse,
+        collisionGroup,
         ...extra
     } = props
 
@@ -50,6 +51,7 @@ const propsToBody = (uuid, props, type) => {
         type: bodyType ? Body[bodyType.toUpperCase()] : undefined,
         material: material ? new Material(material) : undefined,
     })
+
     body.uuid = uuid
 
     if (collisionResponse !== undefined) {
@@ -67,7 +69,9 @@ const propsToBody = (uuid, props, type) => {
             Object.assign(body, extra)
         })
     } else {
-        body.addShape(createShape(type, args))
+        const shape = createShape(type, args)
+        shape.collisionGroup = collisionGroup
+        body.addShape(shape)
     }
 
     vec2.set(body.position, position[0], position[1])

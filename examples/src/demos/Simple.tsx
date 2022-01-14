@@ -1,8 +1,8 @@
-import {Canvas, useFrame} from '@react-three/fiber'
+import {Canvas} from '@react-three/fiber'
 import {Physics, useBox, useCircle} from '@react-three/p2'
 
 function Box() {
-    const [ref, api] = useBox(() => ({
+    const [ref] = useBox(() => ({
         type: 'Kinematic',
         position: [0, -2],
     }))

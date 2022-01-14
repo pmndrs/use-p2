@@ -39,7 +39,6 @@ export type AtomicProps = {
     userData: {}
 }
 
-export type Triplet = [x: number, y: number, z: number]
 export type Duplet = [x: number, y: number]
 
 export type VectorProps = Record<VectorName, Duplet>
@@ -182,10 +181,10 @@ export interface SpringOptns {
     restLength?: number
     stiffness?: number
     damping?: number
-    worldAnchorA?: Triplet
-    worldAnchorB?: Triplet
-    localAnchorA?: Triplet
-    localAnchorB?: Triplet
+    worldAnchorA?: Duplet
+    worldAnchorB?: Duplet
+    localAnchorA?: Duplet
+    localAnchorB?: Duplet
 }
 
 const temp = new Object3D()
@@ -802,7 +801,7 @@ export function useTopDownVehicle(
     const api = useMemo<TopDownVehiclePublicApi>(() => {
         return {
             sliding: {
-                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'vehicles'),
+                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'controllers'),
             },
             setSteeringValue(value: number, wheelIndex: number) {
                 const uuid = getUUID(ref)
@@ -815,6 +814,145 @@ export function useTopDownVehicle(
             setBrake(brake: number, wheelIndex: number) {
                 const uuid = getUUID(ref)
                 uuid && worker.postMessage({op: 'setTopDownVehicleBrake', props: [brake, wheelIndex], uuid})
+            },
+        }
+    }, deps)
+    return [ref, api]
+}
+
+
+export interface KinematicCharacterControllerPublicApi {
+    //update: (deltaTime: number) => void
+    //on: (eventName: string) => void
+    setJump: (isDown: boolean) => void
+    setInput: (input: [x: number, y: number]) => void
+    collisions: {
+        subscribe: (callback: (collisions: {}) => void) => void
+    }
+}
+
+export interface KinematicCharacterControllerProps {
+    body: Ref<Object3D>
+    collisionMask: number
+    skinWidth?: number
+    timeToJumpApex?: number
+    velocityXSmoothing?: number
+}
+
+export function useKinematicCharacterController(
+    fn: () => KinematicCharacterControllerProps,
+    fwdRef: Ref<Object3D> = null,
+    deps: DependencyList = [],
+): [RefObject<Object3D>, KinematicCharacterControllerPublicApi] {
+    const ref = useForwardedRef(fwdRef)
+    const {worker, subscriptions} = useContext(context)
+
+    useLayoutEffect(() => {
+        if (!ref.current) {
+            // When the reference isn't used we create a stub
+            // The body doesn't have a visual representation but can still be constrained
+            ref.current = new Object3D()
+        }
+
+        const currentWorker = worker
+        const uuid: string[] = [ref.current.uuid]
+        const kinematicCharacterControllerProps = fn()
+
+        const bodyUUID = getUUID(kinematicCharacterControllerProps.body)
+        if (!bodyUUID) return
+
+        currentWorker.postMessage({
+            type: undefined,
+            op: 'addKinematicCharacterController',
+            uuid,
+            props: [
+                bodyUUID,
+                kinematicCharacterControllerProps.collisionMask,
+                kinematicCharacterControllerProps.skinWidth,
+                kinematicCharacterControllerProps.timeToJumpApex,
+                kinematicCharacterControllerProps.velocityXSmoothing,
+            ]
+        })
+        return () => {
+            currentWorker.postMessage({op: 'removeKinematicCharacterController', uuid})
+        }
+    }, deps)
+
+    const api = useMemo<KinematicCharacterControllerPublicApi>(() => {
+        return {
+            //update: (deltaTime: number) => void
+            //on: (eventName: string) => void
+            collisions: {
+                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'controllers'),
+            },
+            setJump(isDown: boolean) {
+                const uuid = getUUID(ref)
+                uuid && worker.postMessage({op: 'setKinematicCharacterControllerJump', props: [isDown], uuid})
+            },
+            setInput(input: [x: number, y: number]) {
+                const uuid = getUUID(ref)
+                uuid && worker.postMessage({op: 'setKinematicCharacterControllerInput', props: [input], uuid})
+            },
+        }
+    }, deps)
+    return [ref, api]
+}
+
+export interface PlatformControllerPublicApi {
+    collisions: {
+        subscribe: (callback: (collisions: {}) => void) => void
+    }
+}
+
+export interface PlatformControllerProps {
+    body: Ref<Object3D>
+    passengerMask: number
+    localWaypoints: Duplet[]
+    speed?: number
+}
+
+export function usePlatformController (
+    fn: () => PlatformControllerProps,
+    fwdRef: Ref<Object3D> = null,
+    deps: DependencyList = [],
+): [RefObject<Object3D>, PlatformControllerPublicApi] {
+    const ref = useForwardedRef(fwdRef)
+    const {worker, subscriptions} = useContext(context)
+
+    useLayoutEffect(() => {
+        if (!ref.current) {
+            // When the reference isn't used we create a stub
+            // The body doesn't have a visual representation but can still be constrained
+            ref.current = new Object3D()
+        }
+
+        const currentWorker = worker
+        const uuid: string[] = [ref.current.uuid]
+        const platformControllerProps = fn()
+
+        const bodyUUID = getUUID(platformControllerProps.body)
+        if (!bodyUUID) return
+
+        currentWorker.postMessage({
+            type: undefined,
+            op: 'addPlatformController',
+            uuid,
+            props: [
+                bodyUUID,
+                platformControllerProps.passengerMask,
+                platformControllerProps.localWaypoints,
+                platformControllerProps.speed,
+            ]
+        })
+        return () => {
+            currentWorker.postMessage({op: 'removePlatformController', uuid})
+        }
+    }, deps)
+
+    const api = useMemo<PlatformControllerPublicApi>(() => {
+        return {
+            collisions: {
+                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'controllers'),
             },
         }
     }, deps)

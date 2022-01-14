@@ -7,6 +7,7 @@ const Simple = { Component: lazy(() => import('./Simple')) }
 const Shapes = { Component: lazy(() => import('./Shapes')) }
 const Constraints = { Component: lazy(() => import('./Constraints')) }
 const PingPong = { Component: lazy(() => import('./PingPong')) }
+const KinematicCharacterController = { Component: lazy(() => import('./KinematicCharacterController')) }
 
 export {
   TopDownVehicle,
@@ -16,4 +17,5 @@ export {
   Shapes,
   Constraints,
   PingPong,
+  KinematicCharacterController,
 }

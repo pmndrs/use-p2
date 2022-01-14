@@ -14,12 +14,19 @@ import {
     TopDownVehicle,
     GearConstraint,
     RevoluteConstraint,
-    PrismaticConstraint, Body,
+    PrismaticConstraint,
+    Body,
 } from 'p2-es'
+
+import {
+    KinematicCharacterController,
+    PlatformController,
+} from './Controllers'
 
 const state = {
     bodies: {},
     vehicles: {},
+    controllers: {},
     springs: {},
     springInstances: {},
     rays: {},
@@ -177,6 +184,7 @@ self.onmessage = (e) => {
                 quaternions[4 * i + 2] = s * -_normal[2]
                 quaternions[4 * i + 3] = -Math.cos(b.angle*0.5)
             }
+
             const observations = []
             for (const id of Object.keys(state.subscriptions)) {
                 let [uuid, type, target = 'bodies'] = state.subscriptions[id]
@@ -505,7 +513,50 @@ self.onmessage = (e) => {
             state.vehicles[uuid].wheels[wheelIndex].setBrakeForce(brake)
             break
         }
-
+        case 'addKinematicCharacterController': {
+            const [body, collisionMask, skinWidth, timeToJumpApex, velocityXSmoothing] = props
+            const controller = new KinematicCharacterController({
+                body: state.bodies[body],
+                world: state.world,
+                collisionMask,
+                skinWidth,
+                timeToJumpApex,
+                velocityXSmoothing,
+            });
+            (state.controllers[uuid] = controller)
+            break
+        }
+        case 'removeKinematicCharacterController': {
+            delete state.controllers[uuid]
+            break
+        }
+        case 'setKinematicCharacterControllerInput': {
+            const [input] = props
+            state.controllers[uuid].input = input
+            break
+        }
+        case 'setKinematicCharacterControllerJump': {
+            const [isDown] = props
+            state.controllers[uuid].setJumpKeyState(isDown)
+            break
+        }
+        case 'addPlatformController': {
+            const [body, passengerMask, localWaypoints, speed] = props
+            const controller = new PlatformController({
+                body: state.bodies[body],
+                world: state.world,
+                controllers: state.controllers, //.filter(c => c.constructor.name === 'KinematicCharacterController')
+                passengerMask,
+                localWaypoints,
+                speed,
+            });
+            (state.controllers[uuid] = controller)
+            break
+        }
+        case 'removePlatformController': {
+            delete state.controllers[uuid]
+            break
+        }
         case 'wakeUp': {
             state.bodies[uuid].wakeUp()
             break

@@ -174,10 +174,7 @@ type ApplyTopDownVehicleEngineForceMessage = WithUUID<
     [value: number, wheelIndex: number]
     >
 type SetTopDownVehicleBrakeMessage = WithUUID<'setTopDownVehicleBrake', [brake: number, wheelIndex: number]>
-type SetTopDownVehicleSteeringValueMessage = WithUUID<
-    'setTopDownVehicleSteeringValue',
-    [value: number, wheelIndex: number]
-    >
+type SetTopDownVehicleSteeringValueMessage = WithUUID<'setTopDownVehicleSteeringValue', [value: number, wheelIndex: number]>
 
 type TopDownVehicleMessage =
     | AddTopDownVehicleMessage
@@ -185,6 +182,26 @@ type TopDownVehicleMessage =
     | RemoveTopDownVehicleMessage
     | SetTopDownVehicleBrakeMessage
     | SetTopDownVehicleSteeringValueMessage
+
+
+type AddKinematicCharacterControllerMessage = WithUUIDs<'addKinematicCharacterController', [bodyUUID: string, collisionMask: number, skinWidth?: number, timeToJumpApex?: number, velocityXSmoothing?: number]>
+type RemoveKinematicCharacterControllerMessage = WithUUIDs<'removeKinematicCharacterController'>
+type SetKinematicCharacterControllerJumpMessage = WithUUID<'setKinematicCharacterControllerJump', [isDown: boolean]>
+type SetKinematicCharacterControllerInputMessage = WithUUID<'setKinematicCharacterControllerInput', [input: [x: number, y: number]]>
+
+type KinematicCharacterControllerMessage =
+    | AddKinematicCharacterControllerMessage
+    | RemoveKinematicCharacterControllerMessage
+    | SetKinematicCharacterControllerJumpMessage
+    | SetKinematicCharacterControllerInputMessage
+
+type AddPlatformControllerMessage = WithUUIDs<'addPlatformController', [bodyUUID: string, passengerMask: number, localWaypoints: Duplet[], speed?: number]>
+type RemovePlatformControllerMessage = WithUUIDs<'removePlatformController'>
+
+type PlatformControllerMessage =
+    | AddPlatformControllerMessage
+    | RemovePlatformControllerMessage
+
 
 type AtomicMessage = WithUUID<SetOpName<AtomicName>, any>
 type QuaternionMessage = WithUUID<SetOpName<'quaternion'>, Quad>
@@ -216,7 +233,7 @@ type BodiesMessage = AddBodiesMessage | RemoveBodiesMessage
 type SleepMessage = WithUUID<'sleep'>
 type WakeUpMessage = WithUUID<'wakeUp'>
 
-export type SubscriptionTarget = 'bodies' | 'vehicles'
+export type SubscriptionTarget = 'bodies' | 'vehicles' | 'controllers'
 
 type SubscribeMessage = WithUUID<
     'subscribe',
@@ -242,6 +259,8 @@ type CannonMessage =
     | ConstraintMotorMessage
     | QuaternionMessage
     | TopDownVehicleMessage
+    | KinematicCharacterControllerMessage
+    | PlatformControllerMessage
     | RayMessage
     | RotationMessage
     | SleepMessage
