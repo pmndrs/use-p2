@@ -801,7 +801,7 @@ export function useTopDownVehicle(
     const api = useMemo<TopDownVehiclePublicApi>(() => {
         return {
             sliding: {
-                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'controllers'),
+                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'vehicles'),
             },
             setSteeringValue(value: number, wheelIndex: number) {
                 const uuid = getUUID(ref)

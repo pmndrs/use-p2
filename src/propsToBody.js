@@ -41,7 +41,7 @@ const propsToBody = (uuid, props, type) => {
         shapes,
         onCollide,
         collisionResponse,
-        collisionGroup,
+        collisionGroup = -1,
         ...extra
     } = props
 
