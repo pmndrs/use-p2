@@ -36,6 +36,8 @@ React hooks for [p2-es](https://github.com/pmndrs/p2-es). Use this in combinatio
 
 #### Other
 - [x] useTopDownVehicle
+- [x] useKinematicCharacterController
+- [x] usePlatformController
 
 ## Demos
 
@@ -51,10 +53,10 @@ Meanwhile look at the examples living in [./examples](./examples)
 import { Physics, useBox, ... } from '@react-three/p2'
 ```
 
-2. Create a physics world.
+2. Create a physics world. normalIndex defines the rotation of the physics world in space. Use `1` for top-down and `2` for side-scroller like apps.
 
 ```jsx
-<Physics>{/* Physics related objects in here please */}</Physics>
+<Physics normalIndex={2}>{/* Physics related objects in here please */}</Physics>
 ```
 
 3. Pick a shape that suits your objects contact surface, it could be a box, plane, circle, etc. Give it a mass, too.
@@ -78,7 +80,7 @@ useFrame(({ clock }) => api.position.set(Math.sin(clock.getElapsedTime()) * 5, 0
 6. You can use the body api to subscribe to properties to get updates on each frame.
 
 ```jsx
-const velocity = useRef([0, 0, 0])
+const velocity = useRef([0, 0])
 useEffect(() => {
     const unsubscribe = api.velocity.subscribe((v) => (velocity.current = v))
     return unsubscribe
@@ -124,15 +126,15 @@ ReactDOM.render(
 
 ## Debug
 
-You can debug your scene using the `p2-es-debugger`. This will show you how p2 "sees" your scene.
+You can debug your scene using the `p2-es-debugger`. This will show you how p2 "sees" your scene. Don't forget to tell both the same normalIndex.
 
 ```jsx
 import { Physics, Debug } from '@react-three/cannon'
 
 ReactDOM.render(
     <Canvas>
-        <Physics>
-            <Debug color="black" scale={1.1}>
+        <Physics normalIndex={2}>
+            <Debug color="black" scale={1.1} linewidth={0.01} normalIndex={2}>
                 {/* children */}
             </Debug>
         </Physics>
