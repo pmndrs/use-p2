@@ -21,6 +21,7 @@ export type DebugProps = {
     normalIndex: number
     children: React.ReactNode
     color?: number
+    linewidth?: number
     scale?: number
     impl?: DebuggerInterface
 }
@@ -33,6 +34,7 @@ let _v = []
 export function Debug({
                           normalIndex = 0,
                           color = 0xffffff,
+                          linewidth = 0.002,
                           scale = 1,
                           children,
                           impl = cannonDebugger,
@@ -51,6 +53,7 @@ export function Debug({
             instance.current = impl(scene, debugInfo.bodies, {
                 normalIndex,
                 color,
+                linewidth,
                 scale,
                 autoUpdate: false,
             })

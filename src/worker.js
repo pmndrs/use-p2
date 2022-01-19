@@ -114,7 +114,6 @@ self.onmessage = (e) => {
             _normal.splice(normalIndex,1,1)
 
             state.world.on('impact', (event) => {
-                //console.log(event.contactEquation.firstImpact, event);
                 const {bodyA, bodyB, contactEquation} = event
                 const {normalA, contactPointA, contactPointB, index} = contactEquation
                 const contactPoint = []
@@ -514,14 +513,48 @@ self.onmessage = (e) => {
             break
         }
         case 'addKinematicCharacterController': {
-            const [body, collisionMask, skinWidth, timeToJumpApex, velocityXSmoothing] = props
+            const [
+                body,
+                collisionMask,
+                accelerationTimeAirborne,
+                accelerationTimeGrounded,
+                moveSpeed,
+                wallSlideSpeedMax,
+                wallStickTime,
+                wallJumpClimb,
+                wallJumpOff,
+                wallLeap,
+                timeToJumpApex,
+                maxJumpHeight,
+                minJumpHeight,
+                velocityXSmoothing,
+                velocityXMin,
+                maxClimbAngle,
+                maxDescendAngle,
+                skinWidth,
+                dstBetweenRays,
+            ] = props
             const controller = new KinematicCharacterController({
                 body: state.bodies[body],
                 world: state.world,
                 collisionMask,
-                skinWidth,
+                accelerationTimeAirborne,
+                accelerationTimeGrounded,
+                moveSpeed,
+                wallSlideSpeedMax,
+                wallStickTime,
+                wallJumpClimb,
+                wallJumpOff,
+                wallLeap,
                 timeToJumpApex,
+                maxJumpHeight,
+                minJumpHeight,
                 velocityXSmoothing,
+                velocityXMin,
+                maxClimbAngle,
+                maxDescendAngle,
+                skinWidth,
+                dstBetweenRays,
             });
             (state.controllers[uuid] = controller)
             break
@@ -541,7 +574,7 @@ self.onmessage = (e) => {
             break
         }
         case 'addPlatformController': {
-            const [body, passengerMask, localWaypoints, speed] = props
+            const [body, passengerMask, localWaypoints, speed, skinWidth, dstBetweenRays] = props
             const controller = new PlatformController({
                 body: state.bodies[body],
                 world: state.world,
@@ -549,6 +582,8 @@ self.onmessage = (e) => {
                 passengerMask,
                 localWaypoints,
                 speed,
+                skinWidth,
+                dstBetweenRays,
             });
             (state.controllers[uuid] = controller)
             break

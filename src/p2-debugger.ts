@@ -11,6 +11,7 @@ type ComplexShape = ShapeType & { geometryId?: number }
 export type DebugOptions = {
     normalIndex?: number
     color?: number
+    linewidth?: number
     scale?: number
     onInit?: (body: Body, mesh: Mesh, shape: ShapeType) => void
     onUpdate?: (body: Body, mesh: Mesh, shape: ShapeType) => void
@@ -20,15 +21,23 @@ export type DebugOptions = {
 export default function cannonDebugger(
     scene: Scene,
     bodies: Body[],
-    {normalIndex = 0, color = 0xffffff, scale = 1, onInit, onUpdate, autoUpdate}: DebugOptions = {}
+    {
+        normalIndex = 0,
+        color = 0xffffff,
+        linewidth = 0.002,
+        scale = 1,
+        onInit,
+        onUpdate,
+        autoUpdate
+    }: DebugOptions = {}
 ) {
     const _meshes: Mesh[] = []
-    const _lineMaterial = new LineMaterial({color, linewidth: 0.002, depthTest: false})
+    const _lineMaterial = new LineMaterial({color, linewidth, depthTest: false})
     const _normal = [0, 0, 0]
     _normal.splice(normalIndex, 1, 1)
 
     const _boxPoints = new Array(5).fill({}).map((u, i) => {
-        const arr = [0.7071 * Math.cos(i * 2 * Math.PI / 4 + Math.PI / 4), 0.7071 * Math.sin(i * 2 * Math.PI / 4 + Math.PI / 4)]
+        const arr = [1/Math.sqrt(2) * Math.cos(i * 2 * Math.PI / 4 + Math.PI / 4), 1/Math.sqrt(2) * Math.sin(i * 2 * Math.PI / 4 + Math.PI / 4)]
         arr.splice(normalIndex, 0, 0)
         return arr
     }) // generate box with side = 1 from circle equation
@@ -196,23 +205,24 @@ export default function cannonDebugger(
 
                 if (mesh) {
                     // Get world position
-                    //body.quaternion.vmult(body.shapeOffsets[i], shapeWorldPosition)
                     vec2.rotate(shapeOffset, shape.position, body.angle)
-                    //i === 1 && console.log(body.angle);
                     vec2.add(shapeWorldPosition, body.position, shapeOffset)
 
-                    // Get world quaternion
-                    //body.quaternion.mult(body.shapeOrientations[i], shapeWorldQuaternion)
-
                     // Copy to meshes
-                    // @ts-ignore
                     shapeWorldPosition = [...shapeWorldPosition]
                     shapeWorldPosition.splice(normalIndex, 0, 0)
                     // @ts-ignore
                     mesh.position.set(...shapeWorldPosition)
 
+                    // TODO: there is an issue with angle to quaternion conversion if normalIndex is 1
+
                     const s = Math.sin(body.angle * 0.5)
-                    mesh.quaternion.set(s * _normal[0], s * _normal[1], s * -_normal[2], -Math.cos(body.angle * 0.5))
+                    mesh.quaternion.set(
+                        s * _normal[0],
+                        s * _normal[1],
+                        s * -_normal[2],
+                        -Math.cos(body.angle * 0.5)
+                    )
 
                     if (didCreateNewMesh && onInit instanceof Function) onInit(body, mesh, shape)
                     if (!didCreateNewMesh && onUpdate instanceof Function) onUpdate(body, mesh, shape)

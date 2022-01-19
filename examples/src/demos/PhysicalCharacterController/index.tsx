@@ -78,8 +78,8 @@ const Scene = () => {
             <Canvas shadows camera={{position: [12, 5, 40], fov: 24}}>
                 <color attach="background" args={['#171720']}/>
                 <ambientLight intensity={0.1}/>
-                <spotLight position={[10, 10, -50]} angle={0.75} intensity={0.5} lookAt={() => [0,0,0]} castShadow penumbra={1}/>
-                <OrbitControls enabled={true}/>
+                <spotLight position={[10, 10, -50]} angle={0.75} intensity={0.5} castShadow penumbra={1}/>
+                <OrbitControls enabled={false}/>
                 <mesh rotation-x={0} position={[-4, 1.5, -4]} scale={[2,2,2]}>
                     <planeGeometry args={[3.92, 1]}/>
                     <meshBasicMaterial map={logo} transparent={true}/>

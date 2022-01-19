@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 
 const TopDownVehicle = { Component: lazy(() => import('./TopDownVehicle')) }
-const SideScroller = { Component: lazy(() => import('./SideScroller')) }
+const PhysicalCharacterController = { Component: lazy(() => import('./PhysicalCharacterController')) }
 const MarbleRun = { Component: lazy(() => import('./MarbleRun')) }
 const Simple = { Component: lazy(() => import('./Simple')) }
 const Shapes = { Component: lazy(() => import('./Shapes')) }
@@ -11,7 +11,7 @@ const KinematicCharacterController = { Component: lazy(() => import('./Kinematic
 
 export {
   TopDownVehicle,
-  SideScroller,
+  PhysicalCharacterController,
   MarbleRun,
   Simple,
   Shapes,

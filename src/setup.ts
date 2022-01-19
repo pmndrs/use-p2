@@ -1,17 +1,17 @@
-import { createContext } from 'react'
+import {createContext} from 'react'
 
-import type { RayOptions } from 'p2-es'
-import type { MutableRefObject } from 'react'
-import type { Object3D } from 'three'
-import type { ProviderProps, WorkerCollideEvent, WorkerRayhitEvent } from './Provider'
+import type {RayOptions} from 'p2-es'
+import type {MutableRefObject} from 'react'
+import type {Object3D} from 'three'
+import type {ProviderProps, WorkerCollideEvent, WorkerRayhitEvent} from './Provider'
 import type {
-  AtomicProps,
-  BodyProps,
-  BodyShapeType,
-  ConstraintTypes,
-  Quad,
-  SpringOptns,
-  WheelInfoOptions,
+    AtomicProps,
+    BodyProps,
+    BodyShapeType,
+    ConstraintTypes,
+    Quad,
+    SpringOptns,
+    WheelInfoOptions,
 } from './hooks'
 import type {Duplet} from './hooks'
 
@@ -19,38 +19,38 @@ export type Buffers = { positions: Float32Array; quaternions: Float32Array }
 export type Refs = { [uuid: string]: Object3D }
 type WorkerContact = WorkerCollideEvent['data']['contact']
 export type CollideEvent = Omit<WorkerCollideEvent['data'], 'body' | 'target' | 'contact'> & {
-  body: Object3D
-  target: Object3D
-  contact: Omit<WorkerContact, 'bi' | 'bj'> & {
-    bi: Object3D
-    bj: Object3D
-  }
+    body: Object3D
+    target: Object3D
+    contact: Omit<WorkerContact, 'bi' | 'bj'> & {
+        bi: Object3D
+        bj: Object3D
+    }
 }
 export type CollideBeginEvent = {
-  op: 'event'
-  type: 'collideBegin'
-  target: Object3D
-  body: Object3D
-  contacts: []
+    op: 'event'
+    type: 'collideBegin'
+    target: Object3D
+    body: Object3D
+    contacts: []
 }
 export type CollideEndEvent = {
-  op: 'event'
-  type: 'collideEnd'
-  target: Object3D
-  body: Object3D
+    op: 'event'
+    type: 'collideEnd'
+    target: Object3D
+    body: Object3D
 }
 export type RayhitEvent = Omit<WorkerRayhitEvent['data'], 'body'> & { body: Object3D | null }
 
 type CannonEvent = CollideBeginEvent | CollideEndEvent | CollideEvent | RayhitEvent
 type CallbackByType<T extends { type: string }> = {
-  [K in T['type']]?: T extends { type: K } ? (e: T) => void : never
+    [K in T['type']]?: T extends { type: K } ? (e: T) => void : never
 }
 
 type CannonEvents = { [uuid: string]: Partial<CallbackByType<CannonEvent>> }
 
 export type Subscription = Partial<{ [K in SubscriptionName]: (value: PropValue<K>) => void }>
 export type Subscriptions = Partial<{
-  [id: number]: Subscription
+    [id: number]: Subscription
 }>
 
 export type PropValue<T extends SubscriptionName = SubscriptionName> = T extends AtomicName
@@ -59,38 +59,42 @@ export type PropValue<T extends SubscriptionName = SubscriptionName> = T extends
         ? Duplet
         : T extends 'quaternion'
             ? Quad
-            : T extends 'sliding'
-                ? boolean
-                : never
+            : never
 
 export const atomicNames = [
-  'allowSleep',
-  'angle',
-  'angularDamping',
-  'collisionFilterGroup',
-  'collisionFilterMask',
-  'collisionResponse',
-  'fixedRotation',
-  'isTrigger',
-  'linearDamping',
-  'mass',
-  'material',
-  'sleepSpeedLimit',
-  'sleepTimeLimit',
-  'userData',
+    'allowSleep',
+    'angle',
+    'angularDamping',
+    'collisionFilterGroup',
+    'collisionFilterMask',
+    'collisionResponse',
+    'fixedRotation',
+    'isTrigger',
+    'linearDamping',
+    'mass',
+    'material',
+    'sleepSpeedLimit',
+    'sleepTimeLimit',
+    'userData',
 ] as const
 export type AtomicName = typeof atomicNames[number]
 
 export const vectorNames = [
-  'angularFactor',
-  'angularVelocity',
-  'linearFactor',
-  'position',
-  'velocity',
+    'angularFactor',
+    'angularVelocity',
+    'linearFactor',
+    'position',
+    'velocity',
 ] as const
 export type VectorName = typeof vectorNames[number]
 
-export const subscriptionNames = [...atomicNames, ...vectorNames, 'quaternion', 'sliding'] as const
+export const subscriptionNames = [
+    ...atomicNames,
+    ...vectorNames,
+    'quaternion',
+    'collisions',
+    'raysData',
+] as const
 export type SubscriptionName = typeof subscriptionNames[number]
 
 export type SetOpName<T extends AtomicName | VectorName | WorldPropName | 'quaternion' | 'rotation'> =
@@ -101,7 +105,7 @@ type WithUUID<T extends string, P = void> = Operation<T, P> & { uuid: string }
 type WithUUIDs<T extends string, P = void> = Operation<T, P> & { uuid: string[] }
 
 type AddConstraintMessage = WithUUID<'addConstraint', [uuidA: string, uuidB: string, options: {}]> & {
-  type: 'Hinge' | ConstraintTypes
+    type: 'Hinge' | ConstraintTypes
 }
 
 type DisableConstraintMessage = WithUUID<'disableConstraint'>
@@ -141,38 +145,29 @@ type SpringMessage =
 
 export type RayMode = 'Closest' | 'Any' | 'All'
 
-export type AddRayMessage = WithUUID<
-    'addRay',
-    {
-      from?: Duplet
-      mode: RayMode
-      to?: Duplet
-    } & Pick<
-    RayOptions,
-    'checkCollisionResponse' | 'collisionGroup' | 'collisionMask' | 'skipBackfaces'
-    >
-    >
+export type AddRayMessage = WithUUID<'addRay', {
+        from?: Duplet
+        mode: RayMode
+        to?: Duplet
+} & Pick<RayOptions, 'checkCollisionResponse' | 'collisionGroup' | 'collisionMask' | 'skipBackfaces'>>
 
 type RemoveRayMessage = WithUUID<'removeRay'>
 
 type RayMessage = AddRayMessage | RemoveRayMessage
 
-type AddTopDownVehicleMessage = WithUUIDs<
-    'addTopDownVehicle',
-    [
-      chassisBodyUUID: string,
-      wheelInfos: WheelInfoOptions[],
-      indexForwardAxis: number,
-      indexRightAxis: number,
-      indexUpAxis: number,
-    ]
-    >
+type AddTopDownVehicleMessage = WithUUIDs<'addTopDownVehicle', [
+    chassisBodyUUID: string,
+    wheelInfos: WheelInfoOptions[],
+    indexForwardAxis: number,
+    indexRightAxis: number,
+    indexUpAxis: number,
+]>
 type RemoveTopDownVehicleMessage = WithUUIDs<'removeTopDownVehicle'>
 
-type ApplyTopDownVehicleEngineForceMessage = WithUUID<
-    'applyTopDownVehicleEngineForce',
-    [value: number, wheelIndex: number]
-    >
+type ApplyTopDownVehicleEngineForceMessage = WithUUID<'applyTopDownVehicleEngineForce', [
+    value: number,
+    wheelIndex: number
+]>
 type SetTopDownVehicleBrakeMessage = WithUUID<'setTopDownVehicleBrake', [brake: number, wheelIndex: number]>
 type SetTopDownVehicleSteeringValueMessage = WithUUID<'setTopDownVehicleSteeringValue', [value: number, wheelIndex: number]>
 
@@ -184,7 +179,27 @@ type TopDownVehicleMessage =
     | SetTopDownVehicleSteeringValueMessage
 
 
-type AddKinematicCharacterControllerMessage = WithUUIDs<'addKinematicCharacterController', [bodyUUID: string, collisionMask: number, skinWidth?: number, timeToJumpApex?: number, velocityXSmoothing?: number]>
+type AddKinematicCharacterControllerMessage = WithUUIDs<'addKinematicCharacterController', [
+    bodyUUID: string,
+    collisionMask: number,
+    accelerationTimeAirborne?: number,
+    accelerationTimeGrounded?: number,
+    moveSpeed?: number,
+    wallSlideSpeedMax?: number,
+    wallStickTime?: number,
+    wallJumpClimb?: Duplet,
+    wallJumpOff?: Duplet,
+    wallLeap?: Duplet,
+    timeToJumpApex?: number,
+    maxJumpHeight?: number,
+    minJumpHeight?: number,
+    velocityXSmoothing?: number,
+    velocityXMin?: number,
+    maxClimbAngle?: number,
+    maxDescendAngle?: number,
+    skinWidth?: number,
+    dstBetweenRays?: number,
+]>
 type RemoveKinematicCharacterControllerMessage = WithUUIDs<'removeKinematicCharacterController'>
 type SetKinematicCharacterControllerJumpMessage = WithUUID<'setKinematicCharacterControllerJump', [isDown: boolean]>
 type SetKinematicCharacterControllerInputMessage = WithUUID<'setKinematicCharacterControllerInput', [input: [x: number, y: number]]>
@@ -195,7 +210,14 @@ type KinematicCharacterControllerMessage =
     | SetKinematicCharacterControllerJumpMessage
     | SetKinematicCharacterControllerInputMessage
 
-type AddPlatformControllerMessage = WithUUIDs<'addPlatformController', [bodyUUID: string, passengerMask: number, localWaypoints: Duplet[], speed?: number]>
+type AddPlatformControllerMessage = WithUUIDs<'addPlatformController', [
+    bodyUUID: string,
+    passengerMask: number,
+    localWaypoints: Duplet[],
+    speed?: number,
+    skinWidth?: number,
+    dstBetweenRays?: number,
+]>
 type RemovePlatformControllerMessage = WithUUIDs<'removePlatformController'>
 
 type PlatformControllerMessage =
@@ -222,7 +244,7 @@ type ApplyMessage =
     | ApplyTorque
 
 type SerializableBodyProps = {
-  onCollide: boolean
+    onCollide: boolean
 }
 
 type AddBodiesMessage = WithUUIDs<'addBodies', SerializableBodyProps[]> & { type: BodyShapeType }
@@ -235,14 +257,11 @@ type WakeUpMessage = WithUUID<'wakeUp'>
 
 export type SubscriptionTarget = 'bodies' | 'vehicles' | 'controllers'
 
-type SubscribeMessage = WithUUID<
-    'subscribe',
-    {
-      id: number
-      target: SubscriptionTarget
-      type: SubscriptionName
-    }
-    >
+type SubscribeMessage = WithUUID<'subscribe', {
+        id: number
+        target: SubscriptionTarget
+        type: SubscriptionName
+}>
 type UnsubscribeMessage = Operation<'unsubscribe', number>
 
 type SubscriptionMessage = SubscribeMessage | UnsubscribeMessage
@@ -271,21 +290,21 @@ type CannonMessage =
     | WorldMessage<WorldPropName>
 
 export interface CannonWorker extends Worker {
-  postMessage: (message: CannonMessage) => void
+    postMessage: (message: CannonMessage) => void
 }
 
 export type ProviderContext = {
-  worker: CannonWorker
-  bodies: MutableRefObject<{ [uuid: string]: number }>
-  buffers: Buffers
-  refs: Refs
-  events: CannonEvents
-  subscriptions: Subscriptions
+    worker: CannonWorker
+    bodies: MutableRefObject<{ [uuid: string]: number }>
+    buffers: Buffers
+    refs: Refs
+    events: CannonEvents
+    subscriptions: Subscriptions
 }
 
 export type DebugApi = {
-  add(id: string, props: BodyProps, type: BodyShapeType): void
-  remove(id: string): void
+    add(id: string, props: BodyProps, type: BodyShapeType): void
+    remove(id: string): void
 }
 
 export const context = createContext<ProviderContext>({} as ProviderContext)

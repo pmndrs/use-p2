@@ -16,32 +16,6 @@ function lerp(factor: number, start: number, end: number){
     return start + (end - start) * factor
 }
 
-/**
- * @class KinematicCharacterController
- * @extends {Controller}
- * @constructor
- * @param {object} [options]
- * @param {number} [options.accelerationTimeAirborne=0.2]
- * @param {number} [options.accelerationTimeGrounded=0.1]
- * @param {number} [options.moveSpeed=6]
- * @param {number} [options.wallSlideSpeedMax=3]
- * @param {number} [options.wallStickTime=0.25]
- * @param {array} [options.wallJumpClimb]
- * @param {array} [options.wallJumpOff]
- * @param {array} [options.wallLeap]
- * @param {number} [options.timeToJumpApex=0.4]
- * @param {number} [options.maxJumpHeight=4]
- * @param {number} [options.minJumpHeight=1]
- * @param {number} [options.velocityXSmoothing=0.2]
- * @param {number} [options.velocityXMin=0.0001]
- * @param {number} [options.maxClimbAngle]
- * @param {number} [options.maxDescendAngle]
- * @param {number} [options.collisionMask=-1]
- * @param {number} [options.skinWidth=0.015]
- * @param {number} [options.horizontalRayCount=4]
- * @param {number} [options.verticalRayCount=4]
- */
-
 export type KinematicCharacterControllerOptns = {
     world: World
     body: Body
@@ -62,8 +36,7 @@ export type KinematicCharacterControllerOptns = {
     maxClimbAngle?: number
     maxDescendAngle?: number
     skinWidth?: number
-    horizontalRayCount?: number
-    verticalRayCount?: number
+    dstBetweenRays?: number
 }
 
 export default class KinematicCharacterController extends Controller {
@@ -97,26 +70,26 @@ export default class KinematicCharacterController extends Controller {
 
         this.input = vec2.create()
 
-        this.accelerationTimeAirborne = options.accelerationTimeAirborne !== undefined ? options.accelerationTimeAirborne : 0.2
-        this.accelerationTimeGrounded = options.accelerationTimeGrounded !== undefined ? options.accelerationTimeGrounded : 0.1
-        this.moveSpeed = options.moveSpeed !== undefined ? options.moveSpeed : 6
-        this.wallSlideSpeedMax = options.wallSlideSpeedMax !== undefined ? options.wallSlideSpeedMax : 3
-        this.wallStickTime = options.wallStickTime !== undefined ? options.wallStickTime : 0.25
+        this.accelerationTimeAirborne = options.accelerationTimeAirborne || 0.2
+        this.accelerationTimeGrounded = options.accelerationTimeGrounded || 0.1
+        this.moveSpeed = options.moveSpeed || 6
+        this.wallSlideSpeedMax = options.wallSlideSpeedMax || 3
+        this.wallStickTime = options.wallStickTime || 0.25
 
         this.wallJumpClimb = vec2.clone(options.wallJumpClimb || [10, 10])
         this.wallJumpOff = vec2.clone(options.wallJumpOff || [10, 10])
         this.wallLeap = vec2.clone(options.wallLeap || [10, 15])
 
-        const timeToJumpApex = options.timeToJumpApex !== undefined ? options.timeToJumpApex : 0.4
-        const maxJumpHeight = options.maxJumpHeight !== undefined ? options.maxJumpHeight : 4
-        const minJumpHeight = options.minJumpHeight !== undefined ? options.minJumpHeight : 1
+        const timeToJumpApex = options.timeToJumpApex || 0.4
+        const maxJumpHeight = options.maxJumpHeight || 4
+        const minJumpHeight = options.minJumpHeight || 1
         this.gravity = -(2 * maxJumpHeight) / timeToJumpApex ** 2
         this.maxJumpVelocity = Math.abs(this.gravity) * timeToJumpApex
         this.minJumpVelocity = Math.sqrt(2 * Math.abs(this.gravity) * minJumpHeight)
 
         this.velocity = vec2.create()
-        this.velocityXSmoothing = options.velocityXSmoothing !== undefined ? options.velocityXSmoothing : 0.2
-        this.velocityXMin = options.velocityXMin !== undefined ? options.velocityXMin : 0.0001
+        this.velocityXSmoothing = options.velocityXSmoothing || 0.2
+        this.velocityXMin = options.velocityXMin || 0.0001
 
         this.timeToWallUnstick = 0
         this._requestJump = false

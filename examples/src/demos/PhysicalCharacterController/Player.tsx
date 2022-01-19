@@ -56,10 +56,10 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
         angle: Math.PI/2,
         fixedRotation: true,
         onCollideBegin: e => {
-            //console.log(e);
+            // @ts-ignore
             const normal = e.contacts[0].contactNormal
             vec2.scale(normal, normal, -0.3)
-            playerApi.applyImpulse(normal)
+            playerApi.applyImpulse(normal, [0,0])
         }
     }))
 
@@ -76,7 +76,6 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
         to: [pos[0], pos[1] - 0.2],
         skipBackfaces: true
     }, e => {
-        //console.log(e);
         isGrounded.current = e.hasHit
     }, [pos])
 
@@ -86,11 +85,12 @@ export default ({position}: PropsWithChildren<{ position: [x: number, y: number]
 
         playerApi.position.subscribe(p => {
 
+            camera.position.lerp({x: p[0], y: p[1] + 10, z: 40} as THREE.Vector3, 0.05)
+
+            // reminder: not working if OrbitControls enabled
+            camera.lookAt(p[0], p[1] + 1, 0)
+
             setPos(p)
-
-            //camera.position.lerp({x: p[0], y: p[1] + 10, z: 40} as THREE.Vector3, 0.05)
-
-            //camera.lookAt(p[0], p[1] + 1, 0)
 
         })
 

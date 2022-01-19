@@ -741,9 +741,6 @@ export interface TopDownVehiclePublicApi {
     applyEngineForce: (value: number, wheelIndex: number) => void
     setBrake: (brake: number, wheelIndex: number) => void
     setSteeringValue: (value: number, wheelIndex: number) => void
-    sliding: {
-        subscribe: (callback: (sliding: boolean) => void) => void
-    }
 }
 
 export interface WheelInfoOptions {
@@ -800,9 +797,6 @@ export function useTopDownVehicle(
 
     const api = useMemo<TopDownVehiclePublicApi>(() => {
         return {
-            sliding: {
-                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'vehicles'),
-            },
             setSteeringValue(value: number, wheelIndex: number) {
                 const uuid = getUUID(ref)
                 uuid && worker.postMessage({op: 'setTopDownVehicleSteeringValue', props: [value, wheelIndex], uuid})
@@ -820,23 +814,50 @@ export function useTopDownVehicle(
     return [ref, api]
 }
 
-
+type KinematicCharacterControllerCollisions = {
+    above: boolean,
+    below: boolean,
+    left: boolean,
+    right: boolean,
+    climbingSlope: boolean,
+    descendingSlope: boolean,
+    slopeAngle: number,
+    slopeAngleOld: number,
+    velocityOld: Duplet,
+    faceDir: number,
+    fallingThroughPlatform: boolean
+}
 export interface KinematicCharacterControllerPublicApi {
-    //update: (deltaTime: number) => void
-    //on: (eventName: string) => void
     setJump: (isDown: boolean) => void
     setInput: (input: [x: number, y: number]) => void
     collisions: {
-        subscribe: (callback: (collisions: {}) => void) => void
+        subscribe: (callback: (collisions: KinematicCharacterControllerCollisions) => void) => void
+    }
+    raysData: {
+        subscribe: (callback: (raysData: []) => void) => void
     }
 }
 
 export interface KinematicCharacterControllerProps {
     body: Ref<Object3D>
     collisionMask: number
-    skinWidth?: number
+    accelerationTimeAirborne?: number
+    accelerationTimeGrounded?: number
+    moveSpeed?: number
+    wallSlideSpeedMax?: number
+    wallStickTime?: number
+    wallJumpClimb?: Duplet
+    wallJumpOff?: Duplet
+    wallLeap?: Duplet
     timeToJumpApex?: number
+    maxJumpHeight?: number
+    minJumpHeight?: number
     velocityXSmoothing?: number
+    velocityXMin?: number
+    maxClimbAngle?: number
+    maxDescendAngle?: number
+    skinWidth?: number
+    dstBetweenRays?: number
 }
 
 export function useKinematicCharacterController(
@@ -868,9 +889,23 @@ export function useKinematicCharacterController(
             props: [
                 bodyUUID,
                 kinematicCharacterControllerProps.collisionMask,
-                kinematicCharacterControllerProps.skinWidth,
+                kinematicCharacterControllerProps.accelerationTimeAirborne,
+                kinematicCharacterControllerProps.accelerationTimeGrounded,
+                kinematicCharacterControllerProps.moveSpeed,
+                kinematicCharacterControllerProps.wallSlideSpeedMax,
+                kinematicCharacterControllerProps.wallStickTime,
+                kinematicCharacterControllerProps.wallJumpClimb,
+                kinematicCharacterControllerProps.wallJumpOff,
+                kinematicCharacterControllerProps.wallLeap,
                 kinematicCharacterControllerProps.timeToJumpApex,
+                kinematicCharacterControllerProps.maxJumpHeight,
+                kinematicCharacterControllerProps.minJumpHeight,
                 kinematicCharacterControllerProps.velocityXSmoothing,
+                kinematicCharacterControllerProps.velocityXMin,
+                kinematicCharacterControllerProps.maxClimbAngle,
+                kinematicCharacterControllerProps.maxDescendAngle,
+                kinematicCharacterControllerProps.skinWidth,
+                kinematicCharacterControllerProps.dstBetweenRays,
             ]
         })
         return () => {
@@ -880,10 +915,11 @@ export function useKinematicCharacterController(
 
     const api = useMemo<KinematicCharacterControllerPublicApi>(() => {
         return {
-            //update: (deltaTime: number) => void
-            //on: (eventName: string) => void
             collisions: {
-                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'controllers'),
+                subscribe: subscribe(ref, worker, subscriptions, 'collisions', undefined, 'controllers'),
+            },
+            raysData: {
+                subscribe: subscribe(ref, worker, subscriptions, 'raysData', undefined, 'controllers'),
             },
             setJump(isDown: boolean) {
                 const uuid = getUUID(ref)
@@ -902,6 +938,9 @@ export interface PlatformControllerPublicApi {
     collisions: {
         subscribe: (callback: (collisions: {}) => void) => void
     }
+    raysData: {
+        subscribe: (callback: (raysData: []) => void) => void
+    }
 }
 
 export interface PlatformControllerProps {
@@ -909,6 +948,8 @@ export interface PlatformControllerProps {
     passengerMask: number
     localWaypoints: Duplet[]
     speed?: number
+    skinWidth?: number
+    dstBetweenRays?: number
 }
 
 export function usePlatformController (
@@ -942,6 +983,8 @@ export function usePlatformController (
                 platformControllerProps.passengerMask,
                 platformControllerProps.localWaypoints,
                 platformControllerProps.speed,
+                platformControllerProps.skinWidth,
+                platformControllerProps.dstBetweenRays,
             ]
         })
         return () => {
@@ -952,7 +995,10 @@ export function usePlatformController (
     const api = useMemo<PlatformControllerPublicApi>(() => {
         return {
             collisions: {
-                subscribe: subscribe(ref, worker, subscriptions, 'sliding', undefined, 'controllers'),
+                subscribe: subscribe(ref, worker, subscriptions, 'collisions', undefined, 'controllers'),
+            },
+            raysData: {
+                subscribe: subscribe(ref, worker, subscriptions, 'raysData', undefined, 'controllers'),
             },
         }
     }, deps)

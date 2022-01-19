@@ -11,10 +11,6 @@ import type {
 
 import type {Duplet} from './'
 
-function clamp(value: number, min: number, max: number){
-    return Math.min(max, Math.max(min, value))
-}
-
 function expandAABB({lowerBound, upperBound}: {lowerBound: Duplet, upperBound: Duplet}, amount: number) {
     const halfAmount = amount * 0.5
     lowerBound[0] -= halfAmount
@@ -23,31 +19,21 @@ function expandAABB({lowerBound, upperBound}: {lowerBound: Duplet, upperBound: D
     upperBound[1] += halfAmount
 }
 
-/**
- * @class RaycastController
- * @constructor
- * @param {object} [options]
- * @param {number} [options.collisionMask=-1]
- * @param {number} [options.skinWidth=0.015]
- * @param {number} [options.horizontalRayCount=4]
- * @param {number} [options.verticalRayCount=4]
- */
-
 export type RaycastControllerOptns = {
     world: World
     body: Body
     collisionMask?: number
     skinWidth?: number
-    horizontalRayCount?: number
-    verticalRayCount?: number
+    dstBetweenRays?: number
 }
 
 export default class RaycastController extends EventEmitter {
     world: World
     body: Body
-
+    bounds: AABB
     collisionMask: number
     skinWidth: number
+    dstBetweenRays: number
     horizontalRayCount: number
     verticalRayCount: number
     horizontalRaySpacing: number
@@ -64,25 +50,15 @@ export default class RaycastController extends EventEmitter {
         this.world = options.world
         this.body = options.body
 
-        /**
-         * @property {number} collisionMask
-         */
-        this.collisionMask = options.collisionMask !== undefined ? options.collisionMask : -1
+        this.bounds = new AABB()
 
-        /**
-         * @property {number} skinWidth
-         */
-        this.skinWidth = options.skinWidth !== undefined ? options.skinWidth : 0.015
+        this.collisionMask = options.collisionMask || -1
 
-        /**
-         * @property {number} horizontalRayCount
-         */
-        this.horizontalRayCount = options.horizontalRayCount !== undefined ? options.horizontalRayCount : 4
+        this.skinWidth = options.skinWidth || 0.015
+        this.dstBetweenRays = options.dstBetweenRays || 0.25
 
-        /**
-         * @property {number} verticalRayCount
-         */
-        this.verticalRayCount = options.verticalRayCount !== undefined ? options.verticalRayCount : 4
+        this.horizontalRayCount = 4
+        this.verticalRayCount = 4
 
         this.horizontalRaySpacing = 0
         this.verticalRaySpacing = 0
@@ -91,45 +67,33 @@ export default class RaycastController extends EventEmitter {
             topLeft: vec2.create(),
             topRight: vec2.create(),
             bottomLeft: vec2.create(),
-            bottomRight: vec2.create()
+            bottomRight: vec2.create(),
         }
-        const calculateRaySpacing = this.calculateRaySpacing()
-        calculateRaySpacing()
+
+        this.calculateRaySpacing()
     }
 
     updateRaycastOrigins () {
-        const bounds = new AABB()
-        const calculateRaySpacing = this.calculateRaySpacing()
-        return () => {
-            this.body.aabbNeedsUpdate = true
-            calculateRaySpacing()
-            bounds.copy(this.body.getAABB())
+        this.calculateRaySpacing()
 
-            expandAABB(bounds, this.skinWidth * -2)
-
-            const { raycastOrigins } = this
-
-            vec2.copy(raycastOrigins.bottomLeft, bounds.lowerBound)
-            vec2.set(raycastOrigins.bottomRight, bounds.upperBound[0], bounds.lowerBound[1])
-            vec2.set(raycastOrigins.topLeft, bounds.lowerBound[0], bounds.upperBound[1])
-            vec2.copy(raycastOrigins.topRight, bounds.upperBound)
-        }
+        vec2.set(this.raycastOrigins.bottomLeft, this.bounds.lowerBound[0], this.bounds.lowerBound[1])
+        vec2.set(this.raycastOrigins.bottomRight, this.bounds.upperBound[0], this.bounds.lowerBound[1])
+        vec2.set(this.raycastOrigins.topLeft, this.bounds.lowerBound[0], this.bounds.upperBound[1])
+        vec2.set(this.raycastOrigins.topRight, this.bounds.upperBound[0], this.bounds.upperBound[1])
     }
 
     calculateRaySpacing() {
-        const bounds = new AABB()
-        return () => {
-            this.body.aabbNeedsUpdate = true
-            bounds.copy(this.body.getAABB())
-            expandAABB(bounds, this.skinWidth * -2)
+        this.body.aabbNeedsUpdate = true
+        this.bounds.copy(this.body.getAABB())
+        expandAABB(this.bounds, this.skinWidth * -2)
 
-            this.horizontalRayCount = clamp(this.horizontalRayCount, 2, Number.MAX_SAFE_INTEGER)
-            this.verticalRayCount = clamp(this.verticalRayCount, 2, Number.MAX_SAFE_INTEGER)
+        const boundsWidth = this.bounds.upperBound[0] - this.bounds.lowerBound[0]
+        const boundsHeight = this.bounds.upperBound[1] - this.bounds.lowerBound[1]
 
-            const sizeX = (bounds.upperBound[0] - bounds.lowerBound[0])
-            const sizeY = (bounds.upperBound[1] - bounds.lowerBound[1])
-            this.horizontalRaySpacing = sizeY / (this.horizontalRayCount - 1)
-            this.verticalRaySpacing = sizeX / (this.verticalRayCount - 1)
-        }
+        this.horizontalRayCount = Math.round(boundsHeight / this.dstBetweenRays)
+        this.verticalRayCount = Math.round( boundsWidth / this.dstBetweenRays)
+
+        this.horizontalRaySpacing = boundsHeight / (this.horizontalRayCount - 1)
+        this.verticalRaySpacing = boundsWidth / (this.verticalRayCount - 1)
     }
 }

@@ -20,14 +20,14 @@ function clamp(value: number, min: number, max: number) {
 
 // constants
 const ZERO = vec2.create()
-const UNIT_Y = vec2.fromValues(0, 1)
-const UNIT_X = vec2.fromValues(1, 0)
 
 interface PlatformControllerOptns extends RaycastControllerOptns{
     localWaypoints: Duplet[]
     controllers: {[key: string]: KinematicCharacterController}
     passengerMask: number
     speed?: number
+    skinWidth?: number
+    dstBetweenRays?: number
 }
 
 export default class PlatformController extends RaycastController {
@@ -54,6 +54,7 @@ export default class PlatformController extends RaycastController {
 
     ray: Ray
     raycastResult: RaycastResult
+    raysData: [from: Duplet, to: Duplet, hitDistance?: number][]
 
     constructor(options: PlatformControllerOptns) {
         super(options)
@@ -83,8 +84,10 @@ export default class PlatformController extends RaycastController {
             mode: Ray.CLOSEST,
             from: [0,0],
             to: [0,-1],
+            skipBackfaces: true,
         })
         this.raycastResult = new RaycastResult()
+        this.raysData = []
 
         this.globalWaypoints = new Array(this.localWaypoints.length)
         for (let i = 0; i < this.localWaypoints.length; i++) {
@@ -109,8 +112,7 @@ export default class PlatformController extends RaycastController {
 
         const velocity = this.calculatePlatformMovement(deltaTime)
 
-        const updateRaycastOrigins = this.updateRaycastOrigins()
-        updateRaycastOrigins()
+        this.updateRaycastOrigins()
 
         this.calculatePassengerMovement(velocity)
 
@@ -161,12 +163,12 @@ export default class PlatformController extends RaycastController {
     }
 
     movePassengers(beforeMovePlatform: boolean) {
-        this.passengerMovement.map((passenger, i) => {
+        this.passengerMovement.map((passenger) => {
             if (!(passenger.uuid in this.passengerDictionary)) {
                 console.error('passenger uuid not in passengerDictionary')
             }
 
-            if (passenger.moveBeforePlatform == beforeMovePlatform) {
+            if (passenger.moveBeforePlatform === beforeMovePlatform) {
                 this.passengerDictionary[passenger.uuid].moveWithZeroInput(passenger.velocity, passenger.standingOnPlatform)
             }
         })
@@ -180,33 +182,30 @@ export default class PlatformController extends RaycastController {
         const directionY = sign(velocity[1])
 
         // Vertically moving platform
-        if (velocity[1] != 0) {
+        if (velocity[1] !== 0) {
             const rayLength = Math.abs(velocity[1]) + this.skinWidth
 
             for (let i = 0; i < this.verticalRayCount; i ++) {
                 const ray = this.ray
+
                 ray.collisionMask = this.passengerMask
                 vec2.copy(ray.from, (directionY === -1) ? this.raycastOrigins.bottomLeft : this.raycastOrigins.topLeft)
-                vec2.multiply(ray.from, UNIT_X, [this.verticalRaySpacing * i, this.verticalRaySpacing * i])
-                vec2.set(ray.to, ray.from[0], ray.from[1] + UNIT_Y[1] * directionY + rayLength)
+                vec2.set(ray.from, ray.from[0] + this.verticalRaySpacing * i, ray.from[1])
+                vec2.set(ray.to, ray.from[0], ray.from[1] + directionY * rayLength)
                 ray.update()
                 this.world.raycast(this.raycastResult, ray)
 
-                //this.emitRayCastEvent()
+                this.raysData[i] = [[...ray.from], [...ray.to], undefined]
 
                 if (this.raycastResult.body) {
+                    const distance = this.raycastResult.getHitDistance(ray)
+                    if (distance === 0) continue
 
                     const body = this.raycastResult.body as BodyWithUuid
 
-                    const distance = this.raycastResult.getHitDistance(ray)
-
-                    if (distance === 0) {
-                        continue
-                    }
-
                     if (!movedPassengers.has(body.uuid)) {
                         movedPassengers.add(body.uuid)
-                        const pushX = (directionY == 1) ? velocity[0] : 0
+                        const pushX = (directionY === 1) ? velocity[0] : 0
                         const pushY = velocity[1] - (distance - this.skinWidth) * directionY
 
                         this.passengerMovement.push(new PassengerMovement({
@@ -223,20 +222,21 @@ export default class PlatformController extends RaycastController {
         }
 
         // Horizontally moving platform
-        if (velocity[0] != 0) {
+        if (velocity[0] !== 0) {
             const rayLength = Math.abs(velocity[0]) + this.skinWidth
 
             for (let i = 0; i < this.horizontalRayCount; i++) {
                 const ray = this.ray
 
                 ray.collisionMask = this.passengerMask
-                const rayOrigin = (directionX === -1) ? this.raycastOrigins.bottomLeft : this.raycastOrigins.bottomRight
-                vec2.add(ray.from, rayOrigin, [UNIT_Y[0] * (this.horizontalRaySpacing * i), UNIT_Y[1] * (this.horizontalRaySpacing * i)])
-                vec2.set(ray.to, ray.from[0] + UNIT_X[0] * directionX + rayLength, ray.from[1])
+                vec2.copy(ray.from, (directionX === -1) ? this.raycastOrigins.bottomLeft : this.raycastOrigins.bottomRight)
+                ray.from[1] += this.horizontalRaySpacing * i
+                vec2.copy(ray.to, ray.from)
+                ray.to[0] += directionX * rayLength
                 ray.update()
                 this.world.raycast(this.raycastResult, ray)
 
-                //this.emitRayCastEvent()
+                this.raysData[this.verticalRayCount+i] = [[...ray.from], [...ray.to], undefined]
 
                 if (this.raycastResult.body) {
 
@@ -273,20 +273,22 @@ export default class PlatformController extends RaycastController {
             for (let i = 0; i < this.verticalRayCount; i ++) {
                 const ray = this.ray
                 ray.collisionMask = this.passengerMask
-                vec2.add(ray.from, this.raycastOrigins.topLeft, [UNIT_X[0] * this.verticalRaySpacing * i, UNIT_X[1] * this.verticalRaySpacing * i])
+                vec2.set(ray.from, this.raycastOrigins.topLeft[0] + this.verticalRaySpacing * i, this.raycastOrigins.topLeft[1])
                 vec2.set(ray.to, ray.from[0], ray.from[1] + rayLength)
                 ray.update()
                 this.world.raycast(this.raycastResult, ray)
 
-                if (this.raycastResult.body) {
+                this.raysData[this.verticalRayCount+this.horizontalRayCount+i] = [[...ray.from], [...ray.to], undefined]
 
-                    const body = this.raycastResult.body as BodyWithUuid
+                if (this.raycastResult.body) {
 
                     const distance = this.raycastResult.getHitDistance(ray)
 
                     if (distance === 0) {
                         continue
                     }
+
+                    const body = this.raycastResult.body as BodyWithUuid
 
                     if (!movedPassengers.has(body.uuid)) {
                         movedPassengers.add(body.uuid)
