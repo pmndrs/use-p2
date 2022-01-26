@@ -15,15 +15,15 @@ type DebugApi = {
 
 export type DebuggerInterface = (scene: Scene, bodies: Body[], props?: DebugOptions) => DebugApi
 
-export type DebugInfo = { bodies: Body[]; refs: { [uuid: string]: Body } }
+type DebugInfo = { bodies: Body[]; bodyMap: { [uuid: string]: Body } }
 
 export type DebugProps = {
-    normalIndex: number
     children: React.ReactNode
     color?: number
-    linewidth?: number
-    scale?: number
     impl?: DebuggerInterface
+    linewidth?: number
+    normalIndex: number
+    scale?: number
 }
 
 const v = new Vector3()
@@ -32,60 +32,48 @@ const q = new Quaternion()
 let _v = []
 
 export function Debug({
-                          normalIndex = 0,
+                          children,
                           color = 0xffffff,
+                          normalIndex = 0,
                           linewidth = 0.002,
                           scale = 1,
-                          children,
                           impl = cannonDebugger,
                       }: DebugProps): JSX.Element {
-    const [debugInfo] = useState<DebugInfo>({bodies: [], refs: {}})
+    const [{bodies, bodyMap}] = useState<DebugInfo>({bodyMap: {}, bodies: []})
     const {refs} = useContext(context)
     const [scene] = useState(() => new Scene())
-    const instance = useRef<DebugApi>()
+    const p2DebuggerRef = useRef<DebugApi>(impl(scene, bodies, { color, normalIndex, linewidth, scale }))
 
-    let lastBodies = 0
     const euler = new Euler()
     useFrame(() => {
-        if (!instance.current || lastBodies !== debugInfo.bodies.length) {
-            lastBodies = debugInfo.bodies.length
-            scene.children = []
-            instance.current = impl(scene, debugInfo.bodies, {
-                normalIndex,
-                color,
-                linewidth,
-                scale,
-                autoUpdate: false,
-            })
-        }
-
-        for (const uuid in debugInfo.refs) {
+        for (const uuid in bodyMap) {
             // refs[uuid]: mesh
             // debugInfo.refs[uuid]: body
             refs[uuid].matrix.decompose(v, q, s)
             _v = [v.x, v.y, v.z]
             _v.splice(normalIndex, 1)
             // copy body position and angle from main to debug
-            vec2.set(debugInfo.refs[uuid].position, _v[0], _v[1])
+            vec2.set(bodyMap[uuid].position, _v[0], _v[1])
 
             euler.setFromQuaternion(q)
-            debugInfo.refs[uuid].angle = euler.toArray()[normalIndex]
+            // TODO this is not exactly the angle of the body and causes wrong angles in debugger
+            bodyMap[uuid].angle = euler.toArray()[normalIndex]
         }
 
-        instance.current.update()
+        p2DebuggerRef.current.update()
     })
 
     const api = useMemo(
         () => ({
-            add(id: string, props: BodyProps, type: BodyShapeType) {
-                const body = propsToBody(id, props, type)
-                debugInfo.bodies.push(body)
-                debugInfo.refs[id] = body
+            add(uuid: string, props: BodyProps, type: BodyShapeType) {
+                const body = propsToBody(uuid, props, type)
+                bodies.push(body)
+                bodyMap[uuid] = body
             },
-            remove(id: string) {
-                const debugBodyIndex = debugInfo.bodies.indexOf(debugInfo.refs[id])
-                if (debugBodyIndex > -1) debugInfo.bodies.splice(debugBodyIndex, 1)
-                delete debugInfo.refs[id]
+            remove(uuid: string) {
+                const index = bodies.indexOf(bodyMap[uuid])
+                if (index !== -1) bodies.splice(index, 1)
+                delete bodyMap[uuid]
             },
         }),
         [],

@@ -1,14 +1,17 @@
 import React, {useRef} from 'react'
 import {Canvas} from '@react-three/fiber'
-import {Physics} from '@react-three/p2'
+import {Debug, Physics} from '@react-three/p2'
 import Vehicle from './Vehicle'
 import Pylon from './Pylon'
+
+import { useToggledControl } from '../../use-toggled-control'
 
 function getRandomArbitrary(min: number, max: number) {
     return Math.random() * (max - min) + min
 }
 
 const VehicleScene = () => {
+    const ToggledDebug = useToggledControl(Debug, '?')
 
     const pylonPositions = useRef(new Array(30)
         .fill({})
@@ -23,8 +26,10 @@ const VehicleScene = () => {
                     <meshBasicMaterial color={0x70798B}/>
                 </mesh>
                 <Physics gravity={[0, 0]} normalIndex={1}>
-                    {pylonPositions.current.map((p, i) => <Pylon position={p} angle={i * Math.PI/13} key={i}/>)}
-                    <Vehicle/>
+                    <ToggledDebug normalIndex={1}>
+                        {pylonPositions.current.map((p, i) => <Pylon position={p} angle={i * Math.PI/13} key={i}/>)}
+                        <Vehicle/>
+                    </ToggledDebug>
                 </Physics>
             </Canvas>
             <div style={{position: 'absolute', bottom: '50px', left: '50vw', transform: 'translate(-50%, 0)'}}>
