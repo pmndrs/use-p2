@@ -1,4 +1,20 @@
-import { Body, Circle, Particle, Plane, Convex, Line, Box, Capsule, Heightfield, Material, vec2 } from 'p2-es'
+import {
+    Body,
+    Circle,
+    Particle,
+    Plane,
+    Convex,
+    Line,
+    Box,
+    Capsule,
+    Heightfield,
+    Material,
+    vec2,
+} from 'p2-es'
+
+/**
+ * @typedef { import('p2-es').MaterialOptions } MaterialOptions
+ */
 
 function createShape(type, args) {
     switch (type) {
@@ -22,13 +38,26 @@ function createShape(type, args) {
 }
 
 /**
- *
- * @param uuid {string}
- * @param props {BodyProps}
- * @param type {BodyShapeType}
- * @return {module:objects/Body.Body}
+ * @callback CreateMaterialCallback
+ * @param {MaterialOptions} materialOptions
+ * @returns {Material}
  */
-const propsToBody = (uuid, props, type) => {
+
+function createMaterialFromOptions(materialOptions) {
+    return new Material(materialOptions)
+}
+
+/**
+ * @function
+ * @param {Object} options
+ * @param {string} options.uuid
+ * @param {BodyProps} options.props
+ * @param {BodyShapeType} options.type
+ * @param {CreateMaterialCallback=} options.createMaterial
+ * @returns {Body}
+ */
+const propsToBody = (options) => {
+    const { uuid, props, type, createMaterial = createMaterialFromOptions } = options
     const {
         args = [],
         position = [0, 0],
@@ -49,7 +78,7 @@ const propsToBody = (uuid, props, type) => {
         ...extra,
         mass: bodyType === 'Static' ? 0 : mass,
         type: bodyType ? Body[bodyType.toUpperCase()] : undefined,
-        material: material ? new Material(material) : undefined,
+        material: material ? createMaterial(material) : undefined,
     })
 
     body.uuid = uuid
@@ -59,18 +88,19 @@ const propsToBody = (uuid, props, type) => {
     }
 
     if (type === 'Compound') {
-        shapes.forEach(({type, args, position, angle, material, ...extra}) => {
+        shapes.forEach(({type, args, position, angle, material, ...extra}, i) => {
             body.addShape(
                 createShape(type, args),
                 position ? vec2.fromValues(...position) : undefined,
                 angle,
             )
-            if (material) body.material = new Material(material)
+            if (material) body.shapes[i].material = createMaterial(material)
             Object.assign(body, extra)
         })
     } else {
         const shape = createShape(type, args)
         shape.collisionGroup = collisionGroup
+        if (material) shape.material = createMaterial(material)
         body.addShape(shape)
     }
 

@@ -3,7 +3,7 @@ import {DynamicDrawUsage, InstancedMesh, MathUtils, Object3D} from 'three'
 import type {Quaternion} from 'three'
 import {context, debugContext} from './setup'
 
-import type {ContactMaterialOptions} from 'p2-es'
+import type {ContactMaterialOptions, MaterialOptions} from 'p2-es'
 import type {DependencyList, MutableRefObject, Ref, RefObject} from 'react'
 import type {
     AddRayMessage,
@@ -735,6 +735,27 @@ export function useRaycastAll(
     deps: DependencyList = [],
 ) {
     useRay('All', options, callback, deps)
+}
+
+export function useContactMaterial(
+    materialA: MaterialOptions,
+    materialB: MaterialOptions,
+    options: ContactMaterialOptions,
+    deps: DependencyList = [],
+): void {
+    const { worker } = useContext(context)
+    const [uuid] = useState(() => MathUtils.generateUUID())
+
+    useEffect(() => {
+        worker.postMessage({
+            op: 'addContactMaterial',
+            uuid,
+            props: [materialA, materialB, options],
+        })
+        return () => {
+            worker.postMessage({ op: 'removeContactMaterial', uuid })
+        }
+    }, deps)
 }
 
 export interface TopDownVehiclePublicApi {

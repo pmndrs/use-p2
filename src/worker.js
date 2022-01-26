@@ -16,6 +16,8 @@ import {
     RevoluteConstraint,
     PrismaticConstraint,
     Body,
+    Material,
+    ContactMaterial,
 } from 'p2-es'
 
 import {
@@ -30,6 +32,7 @@ const state = {
     springs: {},
     springInstances: {},
     rays: {},
+    materials: {},
     world: new World(),
     config: {step: 1 / 60},
     subscriptions: {},
@@ -84,6 +87,19 @@ function emitBeginContact({bodyA, bodyB, contactEquations}) {
 function emitEndContact({bodyA, bodyB}) {
     if (!bodyA || !bodyB) return
     self.postMessage({op: 'event', type: 'collideEnd', bodyA: bodyA.uuid, bodyB: bodyB.uuid})
+}
+
+function getMaterialForOptions(materialOptions) {
+    if (typeof materialOptions === 'string') {
+        return (state.materials[materialOptions] =
+            state.materials[materialOptions] || new Material(materialOptions))
+    } else if (typeof materialOptions === 'object') {
+        const { id } = materialOptions
+        if (id) {
+            return (state.materials[id] = state.materials[id] || new Material(materialOptions))
+        }
+    }
+    return new Material(materialOptions)
 }
 
 const _normal = [0,0,0]
@@ -211,7 +227,13 @@ self.onmessage = (e) => {
         }
         case 'addBodies': {
             for (let i = 0; i < uuid.length; i++) {
-                const body = propsToBody(uuid[i], props[i], type)
+                const bodyProps = props[i]
+                const body = propsToBody({
+                    uuid: uuid[i],
+                    props: bodyProps,
+                    type,
+                    createMaterial: getMaterialForOptions,
+                })
                 state.world.addBody(body)
             }
             syncBodies()
@@ -482,6 +504,22 @@ self.onmessage = (e) => {
         case 'removeRay': {
             state.world.off('preSolve', state.rays[uuid])
             delete state.rays[uuid]
+            break
+        }
+        case 'addContactMaterial': {
+            const [materialA, materialB, options] = props
+            const matA = getMaterialForOptions(materialA)
+            const matB = getMaterialForOptions(materialB)
+            const contactMaterial = new ContactMaterial(matA, matB, options)
+            contactMaterial.uuid = uuid
+            state.world.addContactMaterial(contactMaterial)
+            break
+        }
+        case 'removeContactMaterial': {
+            const cmIndex = state.world.contactMaterials.findIndex(({ uuid: thisId }) => thisId === uuid)
+            //const cmat = state.world.contactMaterials[cmIndex]
+            state.world.contactMaterials.splice(cmIndex, 1)
+            //state.world.contactMaterialTable.set(cmat.materials[0].id, cmat.materials[1].id, undefined)
             break
         }
         case 'addTopDownVehicle': {
