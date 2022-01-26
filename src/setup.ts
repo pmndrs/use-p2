@@ -11,7 +11,7 @@ import type {
     ConstraintTypes,
     Quad,
     SpringOptns,
-    WheelInfoOptions,
+    WheelOptions,
 } from './hooks'
 import type {Duplet} from './hooks'
 
@@ -157,10 +157,7 @@ type RayMessage = AddRayMessage | RemoveRayMessage
 
 type AddTopDownVehicleMessage = WithUUIDs<'addTopDownVehicle', [
     chassisBodyUUID: string,
-    wheelInfos: WheelInfoOptions[],
-    indexForwardAxis: number,
-    indexRightAxis: number,
-    indexUpAxis: number,
+    wheelInfos: WheelOptions[],
 ]>
 type RemoveTopDownVehicleMessage = WithUUIDs<'removeTopDownVehicle'>
 

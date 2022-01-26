@@ -743,17 +743,14 @@ export interface TopDownVehiclePublicApi {
     setSteeringValue: (value: number, wheelIndex: number) => void
 }
 
-export interface WheelInfoOptions {
+export interface WheelOptions {
     localPosition?: Duplet,
     sideFriction?: number,
 }
 
 export interface TopDownVehicleProps {
     chassisBody: Ref<Object3D>
-    wheelInfos: WheelInfoOptions[]
-    indexForwardAxis?: number
-    indexRightAxis?: number
-    indexUpAxis?: number
+    wheels: WheelOptions[]
 }
 
 export function useTopDownVehicle(
@@ -784,10 +781,7 @@ export function useTopDownVehicle(
             uuid,
             props: [
                 chassisBodyUUID,
-                topDownVehicleProps.wheelInfos,
-                topDownVehicleProps?.indexForwardAxis || 2,
-                topDownVehicleProps?.indexRightAxis || 0,
-                topDownVehicleProps?.indexUpAxis || 1,
+                topDownVehicleProps.wheels,
             ]
         })
         return () => {

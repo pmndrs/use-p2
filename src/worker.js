@@ -164,6 +164,9 @@ self.onmessage = (e) => {
                 state.world.step(state.config.step)
             } else {
                 const timeSinceLastCall = now - state.lastCallTime
+                // since we fire step message from useFrame loop
+                // p2 simulates what happened while tab in background when we come back
+                // what looks quite odd. Not sure if we need timeSinceLastCall here? Need to figure out
                 state.world.step(state.config.step, timeSinceLastCall)
             }
             state.lastCallTime = now
