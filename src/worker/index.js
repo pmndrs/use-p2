@@ -1,7 +1,4 @@
-import propsToBody from './propsToBody'
-
 import {
-    World,
     NaiveBroadphase,
     SAPBroadphase,
     vec2,
@@ -16,29 +13,17 @@ import {
     RevoluteConstraint,
     PrismaticConstraint,
     Body,
-    Material,
-    ContactMaterial,
 } from 'p2-es'
 
 import {
     KinematicCharacterController,
     PlatformController,
-} from './Controllers'
+} from '../Controllers'
 
-const state = {
-    bodies: {},
-    vehicles: {},
-    controllers: {},
-    springs: {},
-    springInstances: {},
-    rays: {},
-    materials: {},
-    world: new World(),
-    config: {step: 1 / 60},
-    subscriptions: {},
-    bodiesNeedSyncing: false,
-    lastCallTime: undefined,
-}
+import propsToBody from '../propsToBody'
+import { addContactMaterial, removeContactMaterial } from './contact-material'
+import { createMaterialFactory } from './material'
+import { state } from './state'
 
 function syncBodies() {
     state.bodiesNeedSyncing = true
@@ -89,18 +74,7 @@ function emitEndContact({bodyA, bodyB}) {
     self.postMessage({op: 'event', type: 'collideEnd', bodyA: bodyA.uuid, bodyB: bodyB.uuid})
 }
 
-function getMaterialForOptions(materialOptions) {
-    if (typeof materialOptions === 'string') {
-        return (state.materials[materialOptions] =
-            state.materials[materialOptions] || new Material(materialOptions))
-    } else if (typeof materialOptions === 'object') {
-        const { id } = materialOptions
-        if (id) {
-            return (state.materials[id] = state.materials[id] || new Material(materialOptions))
-        }
-    }
-    return new Material(materialOptions)
-}
+const createMaterial = createMaterialFactory(state.materials)
 
 const _normal = [0,0,0]
 
@@ -229,10 +203,10 @@ self.onmessage = (e) => {
             for (let i = 0; i < uuid.length; i++) {
                 const bodyProps = props[i]
                 const body = propsToBody({
-                    uuid: uuid[i],
+                    createMaterial,
                     props: bodyProps,
                     type,
-                    createMaterial: getMaterialForOptions,
+                    uuid: uuid[i],
                 })
                 state.world.addBody(body)
             }
@@ -507,19 +481,11 @@ self.onmessage = (e) => {
             break
         }
         case 'addContactMaterial': {
-            const [materialA, materialB, options] = props
-            const matA = getMaterialForOptions(materialA)
-            const matB = getMaterialForOptions(materialB)
-            const contactMaterial = new ContactMaterial(matA, matB, options)
-            contactMaterial.uuid = uuid
-            state.world.addContactMaterial(contactMaterial)
+            addContactMaterial(state.world, createMaterial, props, uuid)
             break
         }
         case 'removeContactMaterial': {
-            const cmIndex = state.world.contactMaterials.findIndex(({ uuid: thisId }) => thisId === uuid)
-            //const cmat = state.world.contactMaterials[cmIndex]
-            state.world.contactMaterials.splice(cmIndex, 1)
-            //state.world.contactMaterialTable.set(cmat.materials[0].id, cmat.materials[1].id, undefined)
+            removeContactMaterial(state.world, uuid)
             break
         }
         case 'addTopDownVehicle': {

@@ -13,7 +13,7 @@ import type {AtomicName, Buffers, PropValue, ProviderContext, Refs} from './setu
 import type {Duplet} from './hooks'
 
 // @ts-expect-error Types are not setup for this yet
-import CannonWorker from '../src/worker'
+import CannonWorker from './worker'
 
 function noop() {
     /**/
