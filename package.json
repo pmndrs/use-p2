@@ -64,5 +64,8 @@
   "peerDependencies": {
     "react": ">=17.0",
     "react-dom": ">=17.0"
+  },
+  "dependencies": {
+    "meshline": "^2.0.3"
   }
 }

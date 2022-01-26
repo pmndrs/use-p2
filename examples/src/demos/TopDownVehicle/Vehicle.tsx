@@ -1,4 +1,4 @@
-import React, {useRef} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {useBox, useTopDownVehicle} from '@react-three/p2'
 import {useFrame, useThree} from '@react-three/fiber'
 import {useControls} from '../hooks'
@@ -6,12 +6,15 @@ import {vec2} from 'p2-es'
 import type {Object3D} from 'three'
 import * as THREE from 'three'
 import Chassis from './Chassis'
+import Stroke from './Stroke'
 
 export default function Vehicle({
                                     maxBrake = 50,
-                                    steer = 0.35,
+                                    steer = Math.PI/8,
                                     force = 10,
                                 }) {
+
+    const [steeringValue, setSteeringValue] = useState(0)
 
     const controls = useControls()
 
@@ -19,70 +22,96 @@ export default function Vehicle({
 
     const chassisBody = useRef<Object3D>(null)
 
-    const wheelInfo1 = {
-        localPosition: vec2.fromValues(0, 0.7),
-        sideFriction: 20,
+    const frontWheels = {
+        localPosition: vec2.fromValues(0, 0.96),
+        sideFriction: 10,
     }
-    const wheelInfo2 = {
-        localPosition: vec2.fromValues(0, -0.7),
-        sideFriction: 20,
+    const backWheels = {
+        localPosition: vec2.fromValues(0, -0.66),
+        sideFriction: 12,
     }
 
     const [, chassisApi] = useBox(
         () => ({
-            args: [0.8, 1.6],
-            mass: 3,
-            angle: Math.PI,
+            args: [1.3, 3.2],
+            mass: 1,
         }),
         chassisBody
     )
 
-    // stick the camera to vehicle position
+    const positionHelper = useRef<[number, number]>([0,0])
 
-    const positionHelper = useRef(vec2.create())
+    const velocity = useRef<[number, number]>([0,0])
 
     const targetHelper = useRef(new THREE.Vector3())
 
     const angle = useRef(0)
 
-    chassisApi.angle.subscribe(a => angle.current = a)
+    const [angularVelocity, setAngularVelocity] = useState(0)
 
-    chassisApi.position.subscribe(p => {
+    const [sliding, setSliding] = useState(false)
 
-        vec2.rotate(positionHelper.current, [0, -10], angle.current)
+    const [slides, setSlides] = useState([])
 
-        vec2.add(positionHelper.current, p, positionHelper.current)
+    useEffect(() => {
 
-        camera.position.lerp({x: positionHelper.current[0], y: 10, z: positionHelper.current[1]} as THREE.Vector3, 0.025)
+        chassisApi.angle.subscribe(a => angle.current = a)
+        chassisApi.velocity.subscribe(v => velocity.current = v)
+        chassisApi.angularVelocity.subscribe(setAngularVelocity)
 
-        targetHelper.current.lerp({x: p[0], y: 0.5, z: p[1]} as THREE.Vector3, 0.075)
+        chassisApi.position.subscribe(p => {
 
-        camera.lookAt(targetHelper.current)
+            vec2.rotate(positionHelper.current, [0, 10], angle.current)
 
-    })
+            vec2.add(positionHelper.current, p, positionHelper.current)
+
+            camera.position.lerp({x: positionHelper.current[0], y: 10, z: positionHelper.current[1]} as THREE.Vector3, 0.025)
+
+            targetHelper.current.lerp({x: p[0], y: 0.5, z: p[1]} as THREE.Vector3, 0.075)
+
+            camera.lookAt(targetHelper.current)
+
+        })
+    }, [])
 
     const [vehicle, vehicleApi] = useTopDownVehicle(() => ({
         chassisBody,
-        wheelInfos: [wheelInfo1, wheelInfo2],
+        wheels: [frontWheels, backWheels],
     }))
 
-    // control the truck
+    const lineRef = useRef<Object3D>(null)
 
     useFrame(() => {
 
         const {forward, backward, left, right, brake} = controls.current
 
-        vehicleApi.applyEngineForce(forward || backward ? force * (forward && !backward ? 1 : -1) : 0, 1)
+        setSliding(Math.abs(angularVelocity) >= 1.8)
 
-        vehicleApi.setSteeringValue(left || right ? steer * (left && !right ? -1 : 1) : 0, 0)
+        const _steeringValue = left || right ? steer * (left && !right ? -1 : 1) : 0
+
+        vehicleApi.applyEngineForce(forward || backward ? force * (forward && !backward ? -1 : 1) : 0, 1)
+
+        vehicleApi.setSteeringValue(_steeringValue, 1)
+
+        setSteeringValue(_steeringValue)
 
         vehicleApi.setBrake(brake ? maxBrake : 0, 1)
 
     })
 
+    useEffect(() => {
+
+        setSlides( (s, i) => [...s, i])
+
+    }, [sliding])
+
+    const all = useRef({chassisBody, lineRef})
+
     return (
         <group ref={vehicle}>
-            <Chassis ref={chassisBody}/>
+            {slides.map((s, i) => <Stroke offset={new THREE.Vector3(-.55,0.1,.6)} object={chassisBody} color={0x333333} opacity={0.8} width={0.16} maxLength={200} cut={false} active={i === slides.length-1 && sliding} key={i}/>)}
+            {slides.map((s, i) => <Stroke offset={new THREE.Vector3(.55,0.1,.6)} object={chassisBody} color={0x333333} opacity={0.8} width={0.16} maxLength={200} cut={false} active={i === slides.length-1 && sliding} key={i}/>)}
+            <Chassis ref={all} steeringValue={steeringValue} velocity={velocity.current} angularVelocity={angularVelocity} />
         </group>
     )
 }
