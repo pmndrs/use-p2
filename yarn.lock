@@ -2333,13 +2333,6 @@
   "resolved" "https://registry.npmjs.org/merge2/-/merge2-1.4.1.tgz"
   "version" "1.4.1"
 
-"meshline@^2.0.3":
-  "integrity" "sha512-Xadw4xmmQcSsS636hppJJXkRQBofxU1jP7ptaop7KFUbYrJtN9Av5pKTL10cK8wBh1xAQEzSwD3HQt0YjRV41A=="
-  "resolved" "https://registry.npmjs.org/meshline/-/meshline-2.0.3.tgz"
-  "version" "2.0.3"
-  dependencies:
-    "three" "^0.129.0"
-
 "micromatch@^4.0.4":
   "integrity" "sha512-pRmzw/XUcwXGpD9aI9q/0XOwLNygjETJ8y0ao0wdqprrzDa4YnxLcz7fQRZr8voh8V10kGhABbNcHVk5wHgWwg=="
   "resolved" "https://registry.npmjs.org/micromatch/-/micromatch-4.0.4.tgz"
@@ -2961,11 +2954,6 @@
   "integrity" "sha1-f17oI66AUgfACvLfSoTsP8+lcLQ="
   "resolved" "https://registry.npmjs.org/text-table/-/text-table-0.2.0.tgz"
   "version" "0.2.0"
-
-"three@^0.129.0":
-  "integrity" "sha512-wiWio1yVRg2Oj6WEWsTHQo5eSzYpEwSBtPSi3OofNpvFbf26HFfb9kw4FZJNjII4qxzp0b1xLB11+tKkBGB1ZA=="
-  "resolved" "https://registry.npmjs.org/three/-/three-0.129.0.tgz"
-  "version" "0.129.0"
 
 "three@^0.137.0", "three@>=0.126":
   "integrity" "sha512-rzSDhia6cU35UCy6y+zEEws6vSgytfHqFMSaBvUcySgzwvDO6vETyswtSNi/+aVqJw8WLMwyT1mlQQ1T/dxxOA=="
