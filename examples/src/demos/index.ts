@@ -9,6 +9,7 @@ const Constraints = { Component: lazy(() => import('./Constraints')) }
 const PingPong = { Component: lazy(() => import('./PingPong')) }
 const KinematicCharacterController = { Component: lazy(() => import('./KinematicCharacterController')) }
 const Friction = { Component: lazy(() => import('./Friction')) }
+const Trigger = { Component: lazy(() => import('./Trigger')) }
 
 export {
   TopDownVehicle,
@@ -20,4 +21,5 @@ export {
   PingPong,
   KinematicCharacterController,
   Friction,
+  Trigger,
 }

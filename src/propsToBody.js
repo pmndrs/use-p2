@@ -55,6 +55,7 @@ const propsToBody = (options) => {
         velocity = [0, 0],
         angularVelocity = 0,
         type: bodyType,
+        isTrigger,
         mass,
         material,
         shapes,
@@ -85,12 +86,14 @@ const propsToBody = (options) => {
                 angle,
             )
             if (material) body.shapes[i].material = createMaterial(material)
+            if (isTrigger) body.shapes[i].sensor = isTrigger
             Object.assign(body, extra)
         })
     } else {
         const shape = createShape(type, args)
         shape.collisionGroup = collisionGroup
         if (material) shape.material = createMaterial(material)
+        if (isTrigger) shape.sensor = isTrigger
         body.addShape(shape)
     }
 

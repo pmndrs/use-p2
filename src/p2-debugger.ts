@@ -32,7 +32,7 @@ export default function cannonDebugger(
     }: DebugOptions = {}
 ) {
     const _meshes: Mesh[] = []
-    const _lineMaterial = new LineMaterial({color, linewidth, depthTest: false})
+    const _lineMaterial = new LineMaterial({color, linewidth, depthTest: false, depthWrite: false, transparent: true})
     const _normal = [0, 0, 0]
     _normal.splice(normalIndex, 1, 1)
 
