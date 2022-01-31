@@ -45,6 +45,7 @@ export function Debug({
     const p2DebuggerRef = useRef<DebugApi>(impl(scene, bodies, { color, normalIndex, linewidth, scale }))
 
     const euler = new Euler()
+    const order = ['XYZ', 'YZX', 'ZXY']
     useFrame(() => {
         for (const uuid in bodyMap) {
             // refs[uuid]: mesh
@@ -54,9 +55,8 @@ export function Debug({
             _v.splice(normalIndex, 1)
             // copy body position and angle from main to debug
             vec2.set(bodyMap[uuid].position, _v[0], _v[1])
-
-            euler.setFromQuaternion(q)
-            // TODO this is not exactly the angle of the body and causes wrong angles in debugger
+            // convert rotations to euler, important to start to unroll with our normalIndex
+            euler.setFromQuaternion(q, order[normalIndex])
             bodyMap[uuid].angle = euler.toArray()[normalIndex]
         }
 

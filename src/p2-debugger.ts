@@ -138,7 +138,10 @@ export default function cannonDebugger(
         switch (shape.type) {
             case BOX: {
                 // @ts-ignore
-                mesh.scale.copy({x: shape.width, y: shape.height, z: shape.height} as Vector3)
+                const scale = [shape.width, shape.height]
+                scale.splice(normalIndex, 0, 1)
+                // @ts-ignore
+                mesh.scale.set(...scale)
                 //mesh.scale.multiplyScalar(2 * scale)
                 break
             }
@@ -220,8 +223,8 @@ export default function cannonDebugger(
                     mesh.quaternion.set(
                         s * _normal[0],
                         s * _normal[1],
-                        s * -_normal[2],
-                        -Math.cos(body.angle * 0.5)
+                        s * _normal[2],
+                        Math.cos(body.angle * 0.5)
                     )
 
                     if (didCreateNewMesh && onInit instanceof Function) onInit(body, mesh, shape)

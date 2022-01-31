@@ -171,7 +171,7 @@ self.onmessage = (e) => {
                 positions[3 * i + 0] = p[0]
                 positions[3 * i + 1] = p[1]
                 positions[3 * i + 2] = p[2]
-                quaternions[4 * i + 0] = s * _normal[0]
+                quaternions[4 * i + 0] = s * -_normal[0]
                 quaternions[4 * i + 1] = s * _normal[1]
                 quaternions[4 * i + 2] = s * -_normal[2]
                 quaternions[4 * i + 3] = -Math.cos(b.angle*0.5)
