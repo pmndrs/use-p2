@@ -95,6 +95,7 @@ self.onmessage = (e) => {
                 defaultContactMaterial,
                 quatNormalizeFast,
                 quatNormalizeSkip,
+                paused,
             } = props
             state.world.allowSleep = allowSleep
             state.world.gravity = [gravity[0], gravity[1]]
@@ -146,18 +147,22 @@ self.onmessage = (e) => {
             state.world.on('endContact', emitEndContact)
             Object.assign(state.world.defaultContactMaterial, defaultContactMaterial)
             state.config.step = step
+            state.paused = paused
             break
         }
         case 'step': {
             const now = performance.now() / 1000
-            if (!state.lastCallTime) {
-                state.world.step(state.config.step)
-            } else {
-                const timeSinceLastCall = now - state.lastCallTime
-                // since we fire step message from useFrame loop
-                // p2 simulates what happened while tab in background when we come back
-                // what looks quite odd. Not sure if we need timeSinceLastCall here? Need to figure out
-                state.world.step(state.config.step, timeSinceLastCall)
+            
+            if (!state.paused) {
+                if (!state.lastCallTime) {
+                    state.world.step(state.config.step)
+                } else {
+                    const timeSinceLastCall = now - state.lastCallTime
+                    // since we fire step message from useFrame loop
+                    // p2 simulates what happened while tab in background when we come back
+                    // what looks quite odd. Not sure if we need timeSinceLastCall here? Need to figure out
+                    state.world.step(state.config.step, timeSinceLastCall)
+                }
             }
             state.lastCallTime = now
 
@@ -292,6 +297,9 @@ self.onmessage = (e) => {
             break
         case 'setStep':
             state.config.step = props
+            break
+        case 'setPaused':
+            state.paused = props
             break
         case 'setIterations':
             state.world.solver.iterations = props

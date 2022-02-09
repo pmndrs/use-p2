@@ -16,4 +16,5 @@ export const state = {
     subscriptions: {},
     bodiesNeedSyncing: false,
     lastCallTime: undefined,
+    paused: false,
 }

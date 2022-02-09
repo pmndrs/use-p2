@@ -45,6 +45,7 @@ export type ProviderProps = PropsWithChildren<{
     solver?: Solver
     step?: number
     tolerance?: number
+    paused?:boolean
 }>
 
 type Observation = { [K in AtomicName]: [id: number, value: PropValue<K>, type: K] }[AtomicName]
@@ -171,6 +172,7 @@ export function Provider({
                              solver = 'GS',
                              step = 1 / 60,
                              tolerance = 0.001,
+                             paused = false,
                          }: ProviderProps): JSX.Element {
     const {invalidate} = useThree()
     const [worker] = useState<Worker>(() => new CannonWorker() as Worker)
@@ -209,6 +211,7 @@ export function Provider({
                 quatNormalizeFast,
                 quatNormalizeSkip,
                 solver,
+                paused,
             },
         })
 
@@ -316,7 +319,7 @@ export function Provider({
         return () => worker.terminate()
     }, [])
 
-    useUpdateWorldPropsEffect({axisIndex, broadphase, gravity, iterations, step, tolerance, worker})
+    useUpdateWorldPropsEffect({axisIndex, broadphase, gravity, iterations, step, tolerance, worker, paused})
 
     const api: ProviderContext = useMemo(
         () => ({worker, bodies, refs, buffers, events, subscriptions}),
