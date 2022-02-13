@@ -345,15 +345,13 @@ type InitProps = {
   tolerance?: number
 }
 
-export type ProviderProps = React.PropsWithChildren<
-  InitProps & {
-    isPaused?: boolean
-    maxSubSteps?: number
-    shouldInvalidate?: boolean
-    size?: number
-    stepSize?: number
-  }
->
+export type ProviderProps = InitProps & {
+  isPaused?: boolean
+  maxSubSteps?: number
+  shouldInvalidate?: boolean
+  size?: number
+  stepSize?: number
+}
 
 type AtomicProps = {
   allowSleep: boolean
