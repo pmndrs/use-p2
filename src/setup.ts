@@ -1,6 +1,6 @@
 import { createContext } from 'react'
 
-import type { ContactMaterial, ContactMaterialOptions, MaterialOptions, RayOptions } from 'p2-es'
+import type { ContactMaterialOptions, MaterialOptions, RayOptions } from 'p2-es'
 import type { MutableRefObject } from 'react'
 import type { Object3D } from 'three'
 import type { ProviderProps, WorkerCollideEvent, WorkerRayhitEvent } from './Provider'
@@ -293,18 +293,18 @@ export type WorldPropName = 'axisIndex' | 'broadphase' | 'gravity' | 'iterations
 
 type WorldMessage<T extends WorldPropName> = Operation<SetOpName<T>, Required<ProviderProps[T]>>
 
-export type DefaultContactMaterial = Partial<
-  Pick<
-    ContactMaterial,
-    'friction' | 'frictionRelaxation' | 'frictionStiffness' | 'relaxation' | 'restitution' | 'stiffness'
-  >
->
+// export type DefaultContactMaterial = Partial<
+//   Pick<
+//     ContactMaterial,
+//     'friction' | 'frictionRelaxation' | 'frictionStiffness' | 'relaxation' | 'restitution' | 'stiffness'
+//   >
+// >
 
 export type InitProps = {
   allowSleep?: boolean
   axisIndex?: number
   broadphase?: Broadphase
-  defaultContactMaterial?: DefaultContactMaterial
+  defaultContactMaterial?: ContactMaterialOptions
   gravity?: Duplet
   iterations?: number
   normalIndex?: number

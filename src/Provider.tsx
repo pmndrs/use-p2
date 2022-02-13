@@ -7,7 +7,7 @@ import { context } from './setup'
 import { useUpdateWorldPropsEffect } from './useUpdateWorldPropsEffect'
 
 import type { Shape } from 'p2-es'
-import type { PropsWithChildren } from 'react'
+import type { FC } from 'react'
 import type { Object3D } from 'three'
 
 import type { AtomicName, Buffers, CannonWorker, InitProps, PropValue, ProviderContext, Refs } from './setup'
@@ -19,15 +19,13 @@ function noop() {
   /**/
 }
 
-export type ProviderProps = PropsWithChildren<
-  InitProps & {
-    isPaused?: boolean
-    maxSubSteps?: number
-    shouldInvalidate?: boolean
-    size?: number
-    stepSize?: number
-  }
->
+export type ProviderProps = InitProps & {
+  isPaused?: boolean
+  maxSubSteps?: number
+  shouldInvalidate?: boolean
+  size?: number
+  stepSize?: number
+}
 
 type Observation = { [K in AtomicName]: [id: number, value: PropValue<K>, type: K] }[AtomicName]
 
@@ -137,10 +135,9 @@ function apply(index: number, buffers: Buffers, object?: Object3D) {
   return m.identity()
 }
 
-export function Provider({
+export const Provider: FC<ProviderProps> = ({
   allowSleep = false,
   axisIndex = 0,
-  normalIndex = 0,
   broadphase = 'Naive',
   children,
   defaultContactMaterial = { restitution: 0, friction: 0.3 },
@@ -148,6 +145,7 @@ export function Provider({
   isPaused = false,
   iterations = 5,
   maxSubSteps = 10,
+  normalIndex = 0,
   quatNormalizeFast = false,
   quatNormalizeSkip = 0,
   shouldInvalidate = true,
@@ -155,7 +153,7 @@ export function Provider({
   solver = 'GS',
   stepSize = 1 / 60,
   tolerance = 0.001,
-}: ProviderProps): JSX.Element {
+}) => {
   const { invalidate } = useThree()
   const [worker] = useState<CannonWorker>(() => new Worker())
   const [refs] = useState<Refs>({})
