@@ -161,7 +161,9 @@ function Physics({
   children,
   defaultContactMaterial = { contactEquationStiffness: 1e6 },
   gravity = [0, -9.81, 0],
+  isPaused = false,
   iterations = 5,
+  maxSubSteps = 10,
   quatNormalizeFast = false,
   quatNormalizeSkip = 0,
   shouldInvalidate = true,
@@ -169,9 +171,9 @@ function Physics({
   // Lower this value to save memory, increase if 1000 isn't enough
   size = 1000,
   solver = 'GS',
-  step = 1 / 60,
+  stepSize = 1 / 60,
   tolerance = 0.001,
-}: ProviderProps): JSX.Element
+}: React.PropsWithChildren<ProviderProps>): JSX.Element
 
 function Debug({ color = 'black', scale = 1 }: DebugProps): JSX.Element
 
@@ -322,15 +324,10 @@ interface RaycastVehiclePublicApi {
 ### Props
 
 ```typescript
-type ProviderProps = React.PropsWithChildren<{
-  shouldInvalidate?: boolean
-  gravity?: Triplet
-  tolerance?: number
-  step?: number
-  iterations?: number
+type InitProps = {
   allowSleep?: boolean
-  broadphase?: Broadphase
   axisIndex?: number
+  broadphase?: Broadphase
   defaultContactMaterial?: {
     friction?: number
     restitution?: number
@@ -339,8 +336,24 @@ type ProviderProps = React.PropsWithChildren<{
     frictionEquationStiffness?: number
     frictionEquationRelaxation?: number
   }
-  size?: number
-}>
+  gravity?: Duplet
+  iterations?: number
+  normalIndex?: number
+  quatNormalizeFast?: boolean
+  quatNormalizeSkip?: number
+  solver?: Solver
+  tolerance?: number
+}
+
+export type ProviderProps = React.PropsWithChildren<
+  InitProps & {
+    isPaused?: boolean
+    maxSubSteps?: number
+    shouldInvalidate?: boolean
+    size?: number
+    stepSize?: number
+  }
+>
 
 type AtomicProps = {
   allowSleep: boolean
