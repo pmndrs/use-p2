@@ -8,11 +8,11 @@ export * from './hooks'
 export * from './setup'
 
 function Physics(props: ProviderProps) {
-    return (
-        <Suspense fallback={null}>
-            <Provider {...props} />
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={null}>
+      <Provider {...props} />
+    </Suspense>
+  )
 }
 
 export { Physics }

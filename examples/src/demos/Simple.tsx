@@ -1,32 +1,32 @@
-import {Canvas} from '@react-three/fiber'
-import {Physics, useBox, useCircle} from '@react-three/p2'
+import { Canvas } from '@react-three/fiber'
+import { Physics, useBox, useCircle } from '@react-three/p2'
 
 function Box() {
-    const [ref] = useBox(() => ({
-        type: 'Kinematic',
-        position: [0, -2],
-    }))
-    return (
-        <mesh ref={ref}>
-            <boxGeometry />
-        </mesh>
-    )
+  const [ref] = useBox(() => ({
+    type: 'Kinematic',
+    position: [0, -2],
+  }))
+  return (
+    <mesh ref={ref}>
+      <boxGeometry />
+    </mesh>
+  )
 }
 
 function Ball() {
-    const [ref] = useCircle(() => ({mass: 1, position: [0, 2]}))
-    return (
-        <mesh ref={ref}>
-            <sphereGeometry/>
-        </mesh>
-    )
+  const [ref] = useCircle(() => ({ mass: 1, position: [0, 2] }))
+  return (
+    <mesh ref={ref}>
+      <sphereGeometry />
+    </mesh>
+  )
 }
 
 export default () => (
-    <Canvas>
-        <Physics normalIndex={2}>
-            <Box />
-            <Ball />
-        </Physics>
-    </Canvas>
+  <Canvas>
+    <Physics normalIndex={2}>
+      <Box />
+      <Ball />
+    </Physics>
+  </Canvas>
 )
