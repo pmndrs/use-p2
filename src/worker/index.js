@@ -142,17 +142,6 @@ self.onmessage = (e) => {
       break
     }
     case 'step': {
-      // const now = performance.now() / 1000
-      // if (!state.lastCallTime) {
-      //   state.world.step(state.config.step)
-      // } else {
-      //   const timeSinceLastCall = now - state.lastCallTime
-      //   // since we fire step message from useFrame loop
-      //   // p2 simulates what happened while tab in background when we come back
-      //   // what looks quite odd. Not sure if we need timeSinceLastCall here? Need to figure out
-      //   state.world.step(state.config.step, timeSinceLastCall)
-      // }
-      // state.lastCallTime = now
       state.world.step(props.stepSize, props.timeSinceLastCalled, props.maxSubSteps)
 
       const numberOfBodies = state.world.bodies.length
