@@ -1,5 +1,4 @@
 import { Mesh } from 'three'
-import type { Vector3 } from 'three'
 import { Line2 } from 'three/examples/jsm/lines/Line2'
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial'
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry'
@@ -34,9 +33,9 @@ export default function cannonDebugger(
   const _meshes: Mesh[] = []
   const _lineMaterial = new LineMaterial({
     color,
-    linewidth,
     depthTest: false,
     depthWrite: false,
+    linewidth,
     transparent: true,
   })
   const _normal = [0, 0, 0]

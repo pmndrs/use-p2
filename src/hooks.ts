@@ -220,7 +220,7 @@ function subscribe<T extends SubscriptionName>(
     const id = incrementingId++
     subscriptions[id] = { [type]: callback }
     const uuid = getUUID(ref, index)
-    uuid && worker.postMessage({ op: 'subscribe', uuid, props: { id, type, target } })
+    uuid && worker.postMessage({ op: 'subscribe', props: { id, target, type }, uuid })
     return () => {
       delete subscriptions[id]
       worker.postMessage({ op: 'unsubscribe', props: id })
@@ -242,9 +242,9 @@ function setupCollision(
   uuid: string,
 ) {
   events[uuid] = {
-    impact: onCollide,
     collideBegin: onCollideBegin,
     collideEnd: onCollideEnd,
+    impact: onCollide,
   }
 }
 
@@ -304,11 +304,11 @@ function useBody<B extends BodyProps<unknown[]>>(
     // Register on mount, unregister on unmount
     currentWorker.postMessage({
       op: 'addBodies',
-      type,
-      uuid,
       props: props.map(({ onCollide, onCollideBegin, onCollideEnd, ...serializableProps }) => {
         return { onCollide: Boolean(onCollide), ...serializableProps }
       }),
+      type,
+      uuid,
     })
     return () => {
       uuid.forEach((id) => {
@@ -336,11 +336,11 @@ function useBody<B extends BodyProps<unknown[]>>(
       const op = 'setQuaternion'
       const type = 'quaternion'
       return {
-        set: (x: number, y: number, z: number, w: number) => {
+        copy: ({ w, x, y, z }: Quaternion) => {
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op, props: [x, y, z, w], uuid })
         },
-        copy: ({ w, x, y, z }: Quaternion) => {
+        set: (x: number, y: number, z: number, w: number) => {
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op, props: [x, y, z, w], uuid })
         },
@@ -351,11 +351,11 @@ function useBody<B extends BodyProps<unknown[]>>(
     const makeAngle = (index?: number) => {
       const op = 'setAngle'
       return {
-        set: (angle: number) => {
+        copy: (angle: number) => {
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op, props: [angle], uuid })
         },
-        copy: (angle: number) => {
+        set: (angle: number) => {
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op, props: [angle], uuid })
         },
@@ -366,7 +366,7 @@ function useBody<B extends BodyProps<unknown[]>>(
           const uuid = getUUID(ref, index)
 
           subscriptions[id] = { [type]: callback } // {[type]: quaternionToRotation(callback)}
-          uuid && worker.postMessage({ op: 'subscribe', uuid, props: { id, type, target } })
+          uuid && worker.postMessage({ op: 'subscribe', props: { id, target, type }, uuid })
           return () => {
             delete subscriptions[id]
             worker.postMessage({ op: 'unsubscribe', props: id })
@@ -378,13 +378,13 @@ function useBody<B extends BodyProps<unknown[]>>(
     const makeVec = (type: VectorName, index?: number) => {
       const op: SetOpName<VectorName> = `set${capitalize(type)}`
       return {
-        set: (x: number, y: number) => {
-          const uuid = getUUID(ref, index)
-          uuid && worker.postMessage({ op, props: [x, y], uuid })
-        },
         copy: (vec: number[]) => {
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op, props: [vec[0], vec[1]], uuid })
+        },
+        set: (x: number, y: number) => {
+          const uuid = getUUID(ref, index)
+          uuid && worker.postMessage({ op, props: [x, y], uuid })
         },
         subscribe: subscribe(ref, worker, subscriptions, type, index),
       }
@@ -392,27 +392,11 @@ function useBody<B extends BodyProps<unknown[]>>(
 
     function makeApi(index?: number): WorkerApi {
       return {
+        allowSleep: makeAtomic('allowSleep', index),
         angle: makeAngle(index),
+        angularDamping: makeAtomic('angularDamping', index),
         angularFactor: makeVec('angularFactor', index),
         angularVelocity: makeVec('angularVelocity', index),
-        linearFactor: makeVec('linearFactor', index),
-        position: makeVec('position', index),
-        quaternion: makeQuaternion(index),
-        velocity: makeVec('velocity', index),
-        allowSleep: makeAtomic('allowSleep', index),
-        angularDamping: makeAtomic('angularDamping', index),
-        collisionFilterGroup: makeAtomic('collisionFilterGroup', index),
-        collisionFilterMask: makeAtomic('collisionFilterMask', index),
-        collisionResponse: makeAtomic('collisionResponse', index),
-        isTrigger: makeAtomic('isTrigger', index),
-        fixedRotation: makeAtomic('fixedRotation', index),
-        linearDamping: makeAtomic('linearDamping', index),
-        mass: makeAtomic('mass', index),
-        material: makeAtomic('material', index),
-        sleepSpeedLimit: makeAtomic('sleepSpeedLimit', index),
-        sleepTimeLimit: makeAtomic('sleepTimeLimit', index),
-        userData: makeAtomic('userData', index),
-        // Apply functions
         applyForce(force: Duplet, worldPoint: Duplet) {
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op: 'applyForce', props: [force, worldPoint], uuid })
@@ -433,11 +417,25 @@ function useBody<B extends BodyProps<unknown[]>>(
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op: 'applyTorque', props: [torque], uuid })
         },
-        // force particular sleep state
+        collisionFilterGroup: makeAtomic('collisionFilterGroup', index),
+        collisionFilterMask: makeAtomic('collisionFilterMask', index),
+        collisionResponse: makeAtomic('collisionResponse', index),
+        fixedRotation: makeAtomic('fixedRotation', index),
+        isTrigger: makeAtomic('isTrigger', index),
+        linearDamping: makeAtomic('linearDamping', index),
+        linearFactor: makeVec('linearFactor', index),
+        mass: makeAtomic('mass', index),
+        material: makeAtomic('material', index),
+        position: makeVec('position', index),
+        quaternion: makeQuaternion(index),
         sleep() {
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op: 'sleep', uuid })
         },
+        sleepSpeedLimit: makeAtomic('sleepSpeedLimit', index),
+        sleepTimeLimit: makeAtomic('sleepTimeLimit', index),
+        userData: makeAtomic('userData', index),
+        velocity: makeVec('velocity', index),
         wakeUp() {
           const uuid = getUUID(ref, index)
           uuid && worker.postMessage({ op: 'wakeUp', uuid })
@@ -565,19 +563,19 @@ function useConstraint<T extends 'Hinge' | ConstraintTypes>(
 
   const api = useMemo(() => {
     const enableDisable = {
-      enable: () => worker.postMessage({ op: 'enableConstraint', uuid }),
       disable: () => worker.postMessage({ op: 'disableConstraint', uuid }),
+      enable: () => worker.postMessage({ op: 'enableConstraint', uuid }),
     }
 
     if (type === 'Hinge') {
       return {
         ...enableDisable,
-        enableMotor: () => worker.postMessage({ op: 'enableConstraintMotor', uuid }),
         disableMotor: () => worker.postMessage({ op: 'disableConstraintMotor', uuid }),
-        setMotorSpeed: (value: number) =>
-          worker.postMessage({ op: 'setConstraintMotorSpeed', uuid, props: value }),
+        enableMotor: () => worker.postMessage({ op: 'enableConstraintMotor', uuid }),
         setMotorMaxForce: (value: number) =>
-          worker.postMessage({ op: 'setConstraintMotorMaxForce', uuid, props: value }),
+            worker.postMessage({ op: 'setConstraintMotorMaxForce', props: value, uuid }),
+        setMotorSpeed: (value: number) =>
+          worker.postMessage({ op: 'setConstraintMotorSpeed', props: value, uuid }),
       }
     }
 
@@ -648,8 +646,8 @@ export function useSpring(
     if (refA.current && refB.current) {
       worker.postMessage({
         op: 'addSpring',
-        uuid,
         props: [refA.current.uuid, refB.current.uuid, optns],
+        uuid,
       })
       return () => {
         worker.postMessage({ op: 'removeSpring', uuid })
@@ -659,9 +657,9 @@ export function useSpring(
 
   const api = useMemo(
     () => ({
-      setStiffness: (value: number) => worker.postMessage({ op: 'setSpringStiffness', props: value, uuid }),
-      setRestLength: (value: number) => worker.postMessage({ op: 'setSpringRestLength', props: value, uuid }),
       setDamping: (value: number) => worker.postMessage({ op: 'setSpringDamping', props: value, uuid }),
+      setRestLength: (value: number) => worker.postMessage({ op: 'setSpringRestLength', props: value, uuid }),
+      setStiffness: (value: number) => worker.postMessage({ op: 'setSpringStiffness', props: value, uuid }),
     }),
     deps,
   )
@@ -681,7 +679,7 @@ function useRay(
   const [uuid] = useState(() => MathUtils.generateUUID())
   useEffect(() => {
     events[uuid] = { rayhit: callback }
-    worker.postMessage({ op: 'addRay', uuid, props: { mode, ...options } })
+    worker.postMessage({ op: 'addRay', props: { mode, ...options }, uuid })
     return () => {
       worker.postMessage({ op: 'removeRay', uuid })
       delete events[uuid]
@@ -725,8 +723,8 @@ export function useContactMaterial(
   useEffect(() => {
     worker.postMessage({
       op: 'addContactMaterial',
-      uuid,
       props: [materialA, materialB, options],
+      uuid,
     })
     return () => {
       worker.postMessage({ op: 'removeContactMaterial', uuid })
@@ -756,7 +754,7 @@ export function useTopDownVehicle(
   deps: DependencyList = [],
 ): [RefObject<Object3D>, TopDownVehiclePublicApi] {
   const ref = useForwardedRef(fwdRef)
-  const { worker, subscriptions } = useContext(context)
+  const { worker } = useContext(context)
 
   useLayoutEffect(() => {
     if (!ref.current) {
@@ -773,10 +771,10 @@ export function useTopDownVehicle(
     if (!chassisBodyUUID) return
 
     currentWorker.postMessage({
-      type: undefined,
       op: 'addTopDownVehicle',
-      uuid,
       props: [chassisBodyUUID, topDownVehicleProps.wheels],
+      type: undefined,
+      uuid,
     })
     return () => {
       currentWorker.postMessage({ op: 'removeTopDownVehicle', uuid })
@@ -785,10 +783,6 @@ export function useTopDownVehicle(
 
   const api = useMemo<TopDownVehiclePublicApi>(() => {
     return {
-      setSteeringValue(value: number, wheelIndex: number) {
-        const uuid = getUUID(ref)
-        uuid && worker.postMessage({ op: 'setTopDownVehicleSteeringValue', props: [value, wheelIndex], uuid })
-      },
       applyEngineForce(value: number, wheelIndex: number) {
         const uuid = getUUID(ref)
         uuid && worker.postMessage({ op: 'applyTopDownVehicleEngineForce', props: [value, wheelIndex], uuid })
@@ -796,6 +790,10 @@ export function useTopDownVehicle(
       setBrake(brake: number, wheelIndex: number) {
         const uuid = getUUID(ref)
         uuid && worker.postMessage({ op: 'setTopDownVehicleBrake', props: [brake, wheelIndex], uuid })
+      },
+      setSteeringValue(value: number, wheelIndex: number) {
+        const uuid = getUUID(ref)
+        uuid && worker.postMessage({ op: 'setTopDownVehicleSteeringValue', props: [value, wheelIndex], uuid })
       },
     }
   }, deps)
@@ -871,9 +869,7 @@ export function useKinematicCharacterController(
     if (!bodyUUID) return
 
     currentWorker.postMessage({
-      type: undefined,
       op: 'addKinematicCharacterController',
-      uuid,
       props: [
         bodyUUID,
         kinematicCharacterControllerProps.collisionMask,
@@ -895,6 +891,8 @@ export function useKinematicCharacterController(
         kinematicCharacterControllerProps.skinWidth,
         kinematicCharacterControllerProps.dstBetweenRays,
       ],
+      type: undefined,
+      uuid,
     })
     return () => {
       currentWorker.postMessage({ op: 'removeKinematicCharacterController', uuid })
@@ -909,13 +907,13 @@ export function useKinematicCharacterController(
       raysData: {
         subscribe: subscribe(ref, worker, subscriptions, 'raysData', undefined, 'controllers'),
       },
-      setJump(isDown: boolean) {
-        const uuid = getUUID(ref)
-        uuid && worker.postMessage({ op: 'setKinematicCharacterControllerJump', props: [isDown], uuid })
-      },
       setInput(input: [x: number, y: number]) {
         const uuid = getUUID(ref)
         uuid && worker.postMessage({ op: 'setKinematicCharacterControllerInput', props: [input], uuid })
+      },
+      setJump(isDown: boolean) {
+        const uuid = getUUID(ref)
+        uuid && worker.postMessage({ op: 'setKinematicCharacterControllerJump', props: [isDown], uuid })
       },
     }
   }, deps)
@@ -963,9 +961,7 @@ export function usePlatformController(
     if (!bodyUUID) return
 
     currentWorker.postMessage({
-      type: undefined,
       op: 'addPlatformController',
-      uuid,
       props: [
         bodyUUID,
         platformControllerProps.passengerMask,
@@ -974,6 +970,8 @@ export function usePlatformController(
         platformControllerProps.skinWidth,
         platformControllerProps.dstBetweenRays,
       ],
+      type: undefined,
+      uuid,
     })
     return () => {
       currentWorker.postMessage({ op: 'removePlatformController', uuid })

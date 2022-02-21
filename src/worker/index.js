@@ -30,11 +30,14 @@ function syncBodies() {
 function emitBeginContact({ bodyA, bodyB, contactEquations }) {
   if (!bodyA || !bodyB) return
   self.postMessage({
-    op: 'event',
-    type: 'collideBegin',
     bodyA: bodyA.uuid,
     bodyB: bodyB.uuid,
-    target: bodyB.uuid,
+    collisionFilters: {
+      bodyFilterGroup: bodyA.collisionGroup,
+      bodyFilterMask: bodyA.collisionMask,
+      targetFilterGroup: bodyB.collisionGroup,
+      targetFilterMask: bodyB.collisionMask,
+    },
     contacts: contactEquations.map((contactEquation) => {
       const { normalA, contactPointA, contactPointB, index, ...c } = contactEquation
       const contactPoint = []
@@ -43,32 +46,34 @@ function emitBeginContact({ bodyA, bodyB, contactEquations }) {
       vec2.add(contactPoint2, c.bodyB.position, contactPointA)
       const contactNormal = normalA //bodyA === body ? normalA : vec2.scale(normalA, normalA, -1)
       return {
+        bi: bodyA.uuid,
+        bj: bodyB.uuid,
+        // World position of the contact
+        // Normal of the contact, relative to the colliding body
+        contactNormal: contactNormal,
+        contactPoint: contactPoint,
+        contactPoint2: contactPoint2,
+        impactVelocity: contactEquation.getVelocityAlongNormal(),
+        index,
         ni: normalA,
         ri: contactPointA,
         rj: contactPointB,
-        bi: bodyA.uuid,
-        bj: bodyB.uuid,
-        impactVelocity: contactEquation.getVelocityAlongNormal(),
-        // World position of the contact
-        contactPoint: contactPoint,
-        contactPoint2: contactPoint2,
-        // Normal of the contact, relative to the colliding body
-        contactNormal: contactNormal,
-        index,
       }
     }),
-    collisionFilters: {
-      bodyFilterGroup: bodyA.collisionGroup,
-      bodyFilterMask: bodyA.collisionMask,
-      targetFilterGroup: bodyB.collisionGroup,
-      targetFilterMask: bodyB.collisionMask,
-    },
+    op: 'event',
+    target: bodyB.uuid,
+    type: 'collideBegin',
   })
 }
 
 function emitEndContact({ bodyA, bodyB }) {
   if (!bodyA || !bodyB) return
-  self.postMessage({ op: 'event', type: 'collideEnd', bodyA: bodyA.uuid, bodyB: bodyB.uuid })
+  self.postMessage({
+    bodyA: bodyA.uuid,
+    bodyB: bodyB.uuid,
+    op: 'event',
+    type: 'collideEnd',
+  })
 }
 
 const createMaterial = createMaterialFactory(state.materials)
@@ -107,29 +112,29 @@ self.onmessage = (e) => {
         vec2.add(contactPoint, bodyA.position, contactPointA)
         const contactNormal = normalA //bodyA === body ? normalA : vec2.scale(normalA, normalA, -1)
         self.postMessage({
-          op: 'event',
-          type: event.type,
           body: bodyA.uuid,
-          target: bodyB.uuid,
-          contact: {
-            ni: normalA,
-            ri: contactPointA,
-            rj: contactPointB,
-            bi: bodyA.uuid,
-            bj: bodyB.uuid,
-            impactVelocity: contactEquation.getVelocityAlongNormal(),
-            // World position of the contact
-            contactPoint: contactPoint,
-            // Normal of the contact, relative to the colliding body
-            contactNormal: contactNormal,
-            index,
-          },
           collisionFilters: {
             bodyFilterGroup: bodyA.collisionGroup,
             bodyFilterMask: bodyA.collisionMask,
             targetFilterGroup: bodyB.collisionGroup,
             targetFilterMask: bodyB.collisionMask,
           },
+          contact: {
+            bi: bodyA.uuid,
+            bj: bodyB.uuid,
+            // Normal of the contact, relative to the colliding body
+            contactNormal: contactNormal,
+            // World position of the contact
+            contactPoint: contactPoint,
+            impactVelocity: contactEquation.getVelocityAlongNormal(),
+            index,
+            ni: normalA,
+            ri: contactPointA,
+            rj: contactPointB,
+          },
+          op: 'event',
+          target: bodyB.uuid,
+          type: event.type,
         })
       })
 
@@ -181,11 +186,11 @@ self.onmessage = (e) => {
         observations.push([id, value, type])
       }
       const message = {
+        active: state.world.bodies.some((body) => body.sleepState !== Body.SLEEPING),
+        observations,
         op: 'frame',
         positions,
         quaternions,
-        observations,
-        active: state.world.bodies.some((body) => body.sleepState !== Body.SLEEPING),
       }
       if (state.bodiesNeedSyncing) {
         message.bodies = state.world.bodies.map((body) => body.uuid)
@@ -389,13 +394,13 @@ self.onmessage = (e) => {
       localAnchorB = Array.isArray(localAnchorB) ? vec2.fromValues(...localAnchorB) : undefined
 
       let spring = new Spring(state.bodies[bodyA], state.bodies[bodyB], {
-        worldAnchorA,
-        worldAnchorB,
+        damping,
         localAnchorA,
         localAnchorB,
         restLength,
         stiffness,
-        damping,
+        worldAnchorA,
+        worldAnchorB,
       })
 
       spring.uuid = uuid
@@ -427,7 +432,12 @@ self.onmessage = (e) => {
     }
     case 'addRay': {
       const { from, to, mode, ...options } = props
-      const ray = new Ray({ from, to, mode: Ray[mode.toUpperCase()], ...options })
+      const ray = new Ray({
+        from,
+        mode: Ray[mode.toUpperCase()],
+        to,
+        ...options
+      })
       //options.mode = Ray[options.mode.toUpperCase()]
       options.result = new RaycastResult()
       const hitPointWorld = vec2.create()
@@ -436,21 +446,21 @@ self.onmessage = (e) => {
         hasHit && options.result.getHitPoint(hitPointWorld, ray)
         const { body, shape } = options.result
         self.postMessage({
+          body: body ? body.uuid : null,
+          hasHit: hasHit,
+          hitDistance: options.result.getHitDistance(ray),
+          hitPointWorld,
           op: 'event',
-          type: 'rayhit',
           ray: {
-            from: ray.from,
-            to: ray.to,
-            direction: ray.direction,
             collisionGroup: ray.collisionGroup,
             collisionMask: ray.collisionMask,
+            direction: ray.direction,
+            from: ray.from,
+            to: ray.to,
             uuid,
           },
-          body: body ? body.uuid : null,
           shape: shape ? { ...shape, body: body.uuid } : null,
-          hitPointWorld,
-          hitDistance: options.result.getHitDistance(ray),
-          hasHit: hasHit,
+          type: 'rayhit',
         })
       }
       state.world.on('preSolve', state.rays[uuid])
@@ -523,26 +533,26 @@ self.onmessage = (e) => {
         dstBetweenRays,
       ] = props
       const controller = new KinematicCharacterController({
-        body: state.bodies[body],
-        world: state.world,
-        collisionMask,
         accelerationTimeAirborne,
         accelerationTimeGrounded,
+        body: state.bodies[body],
+        collisionMask,
+        dstBetweenRays,
+        maxClimbAngle,
+        maxDescendAngle,
+        maxJumpHeight,
+        minJumpHeight,
         moveSpeed,
-        wallSlideSpeedMax,
-        wallStickTime,
+        skinWidth,
+        timeToJumpApex,
+        velocityXMin,
+        velocityXSmoothing,
         wallJumpClimb,
         wallJumpOff,
         wallLeap,
-        timeToJumpApex,
-        maxJumpHeight,
-        minJumpHeight,
-        velocityXSmoothing,
-        velocityXMin,
-        maxClimbAngle,
-        maxDescendAngle,
-        skinWidth,
-        dstBetweenRays,
+        wallSlideSpeedMax,
+        wallStickTime,
+        world: state.world,
       })
       state.controllers[uuid] = controller
       break
@@ -565,13 +575,13 @@ self.onmessage = (e) => {
       const [body, passengerMask, localWaypoints, speed, skinWidth, dstBetweenRays] = props
       const controller = new PlatformController({
         body: state.bodies[body],
-        world: state.world,
         controllers: state.controllers, //.filter(c => c.constructor.name === 'KinematicCharacterController')
-        passengerMask,
-        localWaypoints,
-        speed,
-        skinWidth,
         dstBetweenRays,
+        localWaypoints,
+        passengerMask,
+        skinWidth,
+        speed,
+        world: state.world,
       })
       state.controllers[uuid] = controller
       break

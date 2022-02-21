@@ -39,10 +39,10 @@ export function Debug({
   scale = 1,
   impl = cannonDebugger,
 }: DebugProps): JSX.Element {
-  const [{ bodies, bodyMap }] = useState<DebugInfo>({ bodyMap: {}, bodies: [] })
+  const [{ bodies, bodyMap }] = useState<DebugInfo>({ bodies: [], bodyMap: {} })
   const { refs } = useContext(context)
   const [scene] = useState(() => new Scene())
-  const p2DebuggerRef = useRef<DebugApi>(impl(scene, bodies, { color, normalIndex, linewidth, scale }))
+  const p2DebuggerRef = useRef<DebugApi>(impl(scene, bodies, { color, linewidth, normalIndex, scale }))
 
   const euler = new Euler()
   const order = ['XYZ', 'YZX', 'ZXY']

@@ -57,10 +57,10 @@ export default class RaycastController extends EventEmitter {
     this.verticalRaySpacing = 0
 
     this.raycastOrigins = {
-      topLeft: vec2.create(),
-      topRight: vec2.create(),
       bottomLeft: vec2.create(),
       bottomRight: vec2.create(),
+      topLeft: vec2.create(),
+      topRight: vec2.create(),
     }
 
     this.calculateRaySpacing()

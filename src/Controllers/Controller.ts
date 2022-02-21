@@ -56,7 +56,7 @@ export default class Controller extends RaycastController {
     KinematicCharacterControllerOptns,
     'world' | 'body' | 'collisionMask' | 'skinWidth' | 'dstBetweenRays' | 'maxClimbAngle' | 'maxDescendAngle'
   >) {
-    super({ world, body, collisionMask, skinWidth, dstBetweenRays })
+    super({ body, collisionMask, dstBetweenRays, skinWidth, world })
 
     const DEG_TO_RAD = Math.PI / 180
 
@@ -67,22 +67,22 @@ export default class Controller extends RaycastController {
     this.collisions = {
       above: false,
       below: false,
-      left: false,
-      right: false,
       climbingSlope: false,
       descendingSlope: false,
+      faceDir: 1,
+      fallingThroughPlatform: false,
+      left: false,
+      right: false,
       slopeAngle: 0,
       slopeAngleOld: 0,
       velocityOld: vec2.create(),
-      faceDir: 1,
-      fallingThroughPlatform: false,
     }
 
     this.ray = new Ray({
-      mode: Ray.CLOSEST,
       from: [0, 0],
-      to: [0, 0],
+      mode: Ray.CLOSEST,
       skipBackfaces: true,
+      to: [0, 0],
     })
     this.raycastResult = new RaycastResult()
     this.raysData = []

@@ -80,10 +80,10 @@ export default class PlatformController extends RaycastController {
     this.time = 0
 
     this.ray = new Ray({
-      mode: Ray.CLOSEST,
       from: [0, 0],
-      to: [0, -1],
+      mode: Ray.CLOSEST,
       skipBackfaces: true,
+      to: [0, -1],
     })
     this.raycastResult = new RaycastResult()
     this.raysData = []
@@ -218,10 +218,10 @@ export default class PlatformController extends RaycastController {
 
             this.passengerMovement.push(
               new PassengerMovement({
-                velocity: vec2.fromValues(pushX, pushY),
-                standingOnPlatform: directionY === 1,
                 moveBeforePlatform: true,
+                standingOnPlatform: directionY === 1,
                 uuid: body.uuid,
+                velocity: vec2.fromValues(pushX, pushY),
               }),
             )
           }
@@ -267,10 +267,10 @@ export default class PlatformController extends RaycastController {
 
             this.passengerMovement.push(
               new PassengerMovement({
-                velocity: vec2.fromValues(pushX, pushY),
-                standingOnPlatform: false,
                 moveBeforePlatform: true,
+                standingOnPlatform: false,
                 uuid: body.uuid,
+                velocity: vec2.fromValues(pushX, pushY),
               }),
             )
           }
@@ -318,10 +318,10 @@ export default class PlatformController extends RaycastController {
 
             this.passengerMovement.push(
               new PassengerMovement({
-                velocity: vec2.fromValues(pushX, pushY),
-                standingOnPlatform: true,
                 moveBeforePlatform: false,
+                standingOnPlatform: true,
                 uuid: body.uuid,
+                velocity: vec2.fromValues(pushX, pushY),
               }),
             )
           }

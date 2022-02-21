@@ -7,13 +7,13 @@ import { Body, Circle, Particle, Plane, Convex, Line, Box, Capsule, Heightfield,
 function createShape(type, args) {
   switch (type) {
     case 'Box':
-      return new Box({ width: args[0], height: args[1] })
+      return new Box({ height: args[1], width: args[0] })
     case 'Capsule':
       return new Capsule({ length: args[0], radius: args[1] })
     case 'Circle':
       return new Circle({ radius: args[0] })
     case 'Convex':
-      return new Convex({ vertices: args[0], axes: args[1] })
+      return new Convex({ axes: args[1], vertices: args[0] })
     case 'Particle':
       return new Particle()
     case 'Plane':
@@ -21,7 +21,7 @@ function createShape(type, args) {
     case 'Line':
       return new Line({ length: args[0] })
     case 'Heightfield':
-      return new Heightfield({ heights: args[0], elementWidth: args[1].elementWidth })
+      return new Heightfield({ elementWidth: args[1].elementWidth, heights: args[0] })
   }
 }
 
@@ -56,8 +56,8 @@ const propsToBody = (options) => {
   const body = new Body({
     ...extra,
     mass: bodyType === 'Static' ? 0 : mass,
-    type: bodyType ? Body[bodyType.toUpperCase()] : undefined,
     material: material ? createMaterial(material) : undefined,
+    type: bodyType ? Body[bodyType.toUpperCase()] : undefined,
   })
 
   body.uuid = uuid
