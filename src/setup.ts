@@ -15,6 +15,8 @@ import type {
 } from './hooks'
 import type { Duplet } from './hooks'
 
+export type Broadphase = 'Naive' | 'SAP'
+export type Solver = 'GS' | 'Split'
 export type Buffers = { positions: Float32Array; quaternions: Float32Array }
 export type Refs = { [uuid: string]: Object3D }
 type WorkerContact = WorkerCollideEvent['data']['contact']
@@ -287,9 +289,40 @@ type UnsubscribeMessage = Operation<'unsubscribe', number>
 
 type SubscriptionMessage = SubscribeMessage | UnsubscribeMessage
 
-export type WorldPropName = 'axisIndex' | 'broadphase' | 'gravity' | 'iterations' | 'step' | 'tolerance'
+export type WorldPropName = 'axisIndex' | 'broadphase' | 'gravity' | 'iterations' | 'tolerance'
 
 type WorldMessage<T extends WorldPropName> = Operation<SetOpName<T>, Required<ProviderProps[T]>>
+
+// export type DefaultContactMaterial = Partial<
+//   Pick<
+//     ContactMaterial,
+//     'friction' | 'frictionRelaxation' | 'frictionStiffness' | 'relaxation' | 'restitution' | 'stiffness'
+//   >
+// >
+
+export type InitProps = {
+  allowSleep?: boolean
+  axisIndex?: number
+  broadphase?: Broadphase
+  defaultContactMaterial?: ContactMaterialOptions
+  gravity?: Duplet
+  iterations?: number
+  normalIndex?: number
+  quatNormalizeFast?: boolean
+  quatNormalizeSkip?: number
+  solver?: Solver
+  tolerance?: number
+}
+
+type InitMessage = Operation<'init', InitProps>
+
+type StepProps = {
+  maxSubSteps?: number
+  stepSize: number
+  timeSinceLastCalled?: number
+}
+
+type StepMessage = Operation<'step', StepProps>
 
 type CannonMessage =
   | ApplyMessage
@@ -297,22 +330,25 @@ type CannonMessage =
   | BodiesMessage
   | ConstraintMessage
   | ConstraintMotorMessage
-  | QuaternionMessage
-  | TopDownVehicleMessage
+  | ContactMaterialMessage
+  | InitMessage
   | KinematicCharacterControllerMessage
   | PlatformControllerMessage
+  | QuaternionMessage
   | RayMessage
   | RotationMessage
   | SleepMessage
   | SpringMessage
-  | ContactMaterialMessage
+  | StepMessage
   | SubscriptionMessage
+  | TopDownVehicleMessage
   | VectorMessage
   | WakeUpMessage
   | WorldMessage<WorldPropName>
 
 export interface CannonWorker extends Worker {
-  postMessage: (message: CannonMessage) => void
+  postMessage(message: CannonMessage, transfer: Transferable[]): void
+  postMessage(message: CannonMessage, options?: StructuredSerializeOptions): void
 }
 
 export type ProviderContext = {
