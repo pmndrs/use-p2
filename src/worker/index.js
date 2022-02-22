@@ -253,6 +253,9 @@ self.onmessage = (e) => {
       state.bodies[uuid].mass = props
       state.bodies[uuid].updateMassProperties()
       break
+    case 'setMaterial':
+      state.bodies[uuid].material = props ? createMaterial(props) : undefined
+      break
     case 'setLinearDamping':
       state.bodies[uuid].linearDamping = props
       break
