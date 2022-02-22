@@ -1,10 +1,10 @@
-import React, { useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Debug, Physics } from '@react-three/p2'
-import Vehicle from './Vehicle'
-import Pylon from './Pylon'
+import React, { useRef } from 'react'
 
 import { useToggledControl } from '../../use-toggled-control'
+import Pylon from './Pylon'
+import Vehicle from './Vehicle'
 
 function getRandomArbitrary(min: number, max: number) {
   return Math.random() * (max - min) + min

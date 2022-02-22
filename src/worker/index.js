@@ -1,22 +1,21 @@
 import {
-  NaiveBroadphase,
-  SAPBroadphase,
-  vec2,
-  DistanceConstraint,
-  LockConstraint,
+  Body,
   Constraint,
-  Spring,
+  DistanceConstraint,
+  GearConstraint,
+  LockConstraint,
+  NaiveBroadphase,
+  PrismaticConstraint,
   Ray,
   RaycastResult,
-  TopDownVehicle,
-  GearConstraint,
   RevoluteConstraint,
-  PrismaticConstraint,
-  Body,
+  SAPBroadphase,
+  Spring,
+  TopDownVehicle,
+  vec2,
 } from 'p2-es'
 
 import { KinematicCharacterController, PlatformController } from '../Controllers'
-
 import propsToBody from '../propsToBody'
 import { addContactMaterial, removeContactMaterial } from './contact-material'
 import { createMaterialFactory } from './material'

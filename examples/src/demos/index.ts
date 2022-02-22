@@ -12,14 +12,14 @@ const Friction = { Component: lazy(() => import('./Friction')) }
 const Trigger = { Component: lazy(() => import('./Trigger')) }
 
 export {
-  TopDownVehicle,
-  PhysicalCharacterController,
-  MarbleRun,
-  Simple,
-  Shapes,
   Constraints,
-  PingPong,
-  KinematicCharacterController,
   Friction,
+  KinematicCharacterController,
+  MarbleRun,
+  PhysicalCharacterController,
+  PingPong,
+  Shapes,
+  Simple,
+  TopDownVehicle,
   Trigger,
 }

@@ -1,8 +1,8 @@
-import type * as THREE from 'three'
-import React from 'react'
 import { useGLTF } from '@react-three/drei'
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
 import { useCircle } from '@react-three/p2'
+import React from 'react'
+import type * as THREE from 'three'
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
 
 type GLTFResult = GLTF & {
   nodes: {

@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
-import styled from 'styled-components'
 import { HashRouter as Router, Link, Route, Routes, useMatch } from 'react-router-dom'
-import { Global } from './styles'
+import styled from 'styled-components'
 
 import * as demos from './demos'
+import { Global } from './styles'
 import { Page as PageImpl } from './styles'
 
 const Page = styled(PageImpl)`

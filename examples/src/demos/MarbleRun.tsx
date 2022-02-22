@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber'
-import { useBox, Physics, Debug, useCircle } from '@react-three/p2'
-import { PropsWithChildren } from 'react'
+import { Debug, Physics, useBox, useCircle } from '@react-three/p2'
 import { vec2 } from 'p2-es'
+import type { PropsWithChildren } from 'react'
 
 type BoxProps = {
   args: [width: number, height: number]

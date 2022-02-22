@@ -1,9 +1,8 @@
-import { createContext } from 'react'
-
 import type { ContactMaterialOptions, MaterialOptions, RayOptions } from 'p2-es'
 import type { MutableRefObject } from 'react'
+import { createContext } from 'react'
 import type { Object3D } from 'three'
-import type { ProviderProps, WorkerCollideEvent, WorkerRayhitEvent } from './Provider'
+
 import type {
   AtomicProps,
   BodyProps,
@@ -14,6 +13,7 @@ import type {
   WheelOptions,
 } from './hooks'
 import type { Duplet } from './hooks'
+import type { ProviderProps, WorkerCollideEvent, WorkerRayhitEvent } from './Provider'
 
 export type Buffers = { positions: Float32Array; quaternions: Float32Array }
 export type Refs = { [uuid: string]: Object3D }

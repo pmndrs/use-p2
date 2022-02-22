@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import { animated, config, useSpring } from '@react-spring/three'
+import { useGLTF } from '@react-three/drei'
+import { useCircle } from '@react-three/p2'
 import type { PropsWithChildren } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { BufferGeometry, Material } from 'three'
 import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
-import { animated, config, useSpring } from '@react-spring/three'
-import { useCircle } from '@react-three/p2'
-import { useGLTF } from '@react-three/drei'
+
 import usePlayer from './PlayerZustand'
 
 const heartMaterials = ['Red'] as const

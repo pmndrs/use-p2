@@ -1,11 +1,12 @@
-import type { FC } from 'react'
+import { OrbitControls, RoundedBox } from '@react-three/drei'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { RoundedBox, OrbitControls } from '@react-three/drei'
 import { Debug, Physics, useCircle, usePlane } from '@react-three/p2'
-import { DistanceHandle, DistanceChain } from './DistanceConstraint'
-import { LockHandle, LockChain } from './LockConstraint'
-import { RevoluteJoint } from './RevoluteConstraint'
+import type { FC } from 'react'
+
+import { DistanceChain, DistanceHandle } from './DistanceConstraint'
 import { GearJoint } from './GearConstraint'
+import { LockChain, LockHandle } from './LockConstraint'
+import { RevoluteJoint } from './RevoluteConstraint'
 
 const normalIndex = 2
 

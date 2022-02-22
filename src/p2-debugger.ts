@@ -1,10 +1,10 @@
+import type { Body, Capsule, Circle, Line, Shape as ShapeType } from 'p2-es'
+import { Shape, vec2 } from 'p2-es'
+import type { Scene } from 'three'
 import { Mesh } from 'three'
 import { Line2 } from 'three/examples/jsm/lines/Line2'
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial'
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry'
-import type { Body, Shape as ShapeType, Capsule, Circle, Line } from 'p2-es'
-import type { Scene } from 'three'
-import { Shape, vec2 } from 'p2-es'
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial'
 
 type ComplexShape = ShapeType & { geometryId?: number }
 export type DebugOptions = {

@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useBox, useTopDownVehicle } from '@react-three/p2'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useControls } from '../hooks'
+import { useBox, useTopDownVehicle } from '@react-three/p2'
 import { vec2 } from 'p2-es'
+import React, { useEffect, useRef, useState } from 'react'
 import type { Object3D } from 'three'
 import * as THREE from 'three'
+
+import { useControls } from '../hooks'
 import Chassis from './Chassis'
 import Stroke from './Stroke'
 

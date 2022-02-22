@@ -1,8 +1,10 @@
-import { Canvas } from '@react-three/fiber'
-import { Physics, Debug, useBox } from '@react-three/p2'
 import 'joypad.js'
-import Player from './Player'
+
+import { Canvas } from '@react-three/fiber'
+import { Debug, Physics, useBox } from '@react-three/p2'
+
 import Platform from './Platform'
+import Player from './Player'
 
 export const SCENERY_GROUP = Math.pow(2, 1)
 export const PLAYER_GROUP = Math.pow(2, 2)

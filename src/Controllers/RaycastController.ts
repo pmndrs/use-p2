@@ -1,6 +1,5 @@
-import { AABB, EventEmitter, vec2 } from 'p2-es'
-
 import type { Body, World } from 'p2-es'
+import { AABB, EventEmitter, vec2 } from 'p2-es'
 
 import type { Duplet } from './'
 

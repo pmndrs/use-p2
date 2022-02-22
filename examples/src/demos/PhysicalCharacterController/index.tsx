@@ -1,17 +1,18 @@
-import React from 'react'
-import type { PropsWithChildren } from 'react'
+import { OrbitControls, RoundedBox, useGLTF } from '@react-three/drei'
 import { Canvas, useLoader } from '@react-three/fiber'
-import { useGLTF, RoundedBox, OrbitControls } from '@react-three/drei'
 import { Debug, Physics, useBox, usePlane } from '@react-three/p2'
+import type { PropsWithChildren } from 'react'
+import React from 'react'
 import type { BufferGeometry, Material } from 'three'
 import * as THREE from 'three'
 import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
-import Player from './Player'
-import Spikes from './Spikes'
-import Heart from './Heart'
-import Crane from './Crane'
+
 import { Chain, StaticHandle } from './Bridge'
+import Crane from './Crane'
+import Heart from './Heart'
+import Player from './Player'
 import usePlayer from './PlayerZustand'
+import Spikes from './Spikes'
 
 const tileMaterials = ['Green', 'BrownDark'] as const
 type TileMaterial = typeof tileMaterials[number]

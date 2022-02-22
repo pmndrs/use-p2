@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { Physics, Debug, useBox, useCircle, usePlane } from '@react-three/p2'
+import { Debug, Physics, useBox, useCircle, usePlane } from '@react-three/p2'
 import { useState } from 'react'
 
 function Box() {

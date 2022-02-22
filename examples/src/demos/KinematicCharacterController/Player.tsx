@@ -1,12 +1,13 @@
+import { animated, config, useSpring } from '@react-spring/three'
 import { useFrame, useThree } from '@react-three/fiber'
+import { useBox, useKinematicCharacterController } from '@react-three/p2'
 import { useEffect, useRef, useState } from 'react'
 import type { Object3D } from 'three'
-import { useBox, useKinematicCharacterController } from '@react-three/p2'
-import { animated, config, useSpring } from '@react-spring/three'
-import * as THREE from 'three'
 import type { LineSegments } from 'three'
-import { PLAYER_GROUP, SCENERY_GROUP } from './'
+import * as THREE from 'three'
+
 import { useControls } from '../hooks'
+import { PLAYER_GROUP, SCENERY_GROUP } from './'
 
 /**
  * @class KinematicCharacterController

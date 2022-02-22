@@ -1,10 +1,9 @@
-import { useLayoutEffect, useContext, useRef, useMemo, useEffect, useState } from 'react'
-import { DynamicDrawUsage, InstancedMesh, MathUtils, Object3D } from 'three'
-import type { Quaternion } from 'three'
-import { context, debugContext } from './setup'
-
 import type { ContactMaterialOptions, MaterialOptions } from 'p2-es'
 import type { DependencyList, MutableRefObject, Ref, RefObject } from 'react'
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { Quaternion } from 'three'
+import { DynamicDrawUsage, InstancedMesh, MathUtils, Object3D } from 'three'
+
 import type {
   AddRayMessage,
   AtomicName,
@@ -21,6 +20,7 @@ import type {
   SubscriptionTarget,
   VectorName,
 } from './setup'
+import { context, debugContext } from './setup'
 
 export type AtomicProps = {
   allowSleep: boolean

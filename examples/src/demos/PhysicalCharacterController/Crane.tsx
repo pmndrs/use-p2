@@ -1,8 +1,8 @@
+import { useGLTF } from '@react-three/drei'
 import { useBox, useCircle, useRevoluteConstraint } from '@react-three/p2'
 import type { PropsWithChildren } from 'react'
-import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
 import type { BufferGeometry, Material } from 'three'
-import { useGLTF } from '@react-three/drei'
+import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
 
 const materials = ['Beige', 'BrownDark'] as const
 type PlatformMaterial = typeof materials[number]

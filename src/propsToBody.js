@@ -1,4 +1,4 @@
-import { Body, Circle, Particle, Plane, Convex, Line, Box, Capsule, Heightfield, Material, vec2 } from 'p2-es'
+import { Body, Box, Capsule, Circle, Convex, Heightfield, Line, Material, Particle, Plane, vec2 } from 'p2-es'
 
 /**
  * @typedef { import('p2-es').MaterialOptions } MaterialOptions

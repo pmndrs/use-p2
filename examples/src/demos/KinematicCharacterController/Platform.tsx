@@ -1,9 +1,10 @@
+import { useFrame } from '@react-three/fiber'
 import { useBox, usePlatformController } from '@react-three/p2'
 import { useEffect, useRef } from 'react'
-import * as THREE from 'three'
-import { useFrame } from '@react-three/fiber'
-import { PLAYER_GROUP, SCENERY_GROUP } from './'
 import type { LineSegments } from 'three'
+import * as THREE from 'three'
+
+import { PLAYER_GROUP, SCENERY_GROUP } from './'
 
 export default ({
   args,

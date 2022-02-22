@@ -1,8 +1,8 @@
 import { Ray, RaycastResult, vec2 } from 'p2-es'
-import type { KinematicCharacterControllerOptns } from './KinematicCharacterController'
-import RaycastController from './RaycastController'
 
 import type { Duplet } from './'
+import type { KinematicCharacterControllerOptns } from './KinematicCharacterController'
+import RaycastController from './RaycastController'
 
 // constants
 const ZERO = vec2.create()

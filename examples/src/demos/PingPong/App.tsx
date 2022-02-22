@@ -1,12 +1,13 @@
-import * as THREE from 'three'
-import { useRef, useState } from 'react'
+import { OrbitControls, Text, useGLTF, useTexture } from '@react-three/drei'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Text, useGLTF, useTexture, OrbitControls } from '@react-three/drei'
-import { Physics, Debug, useCircle, useBox, usePlane } from '@react-three/p2'
-import { proxy, useSnapshot } from 'valtio'
+import { Debug, Physics, useBox, useCircle, usePlane } from '@react-three/p2'
 import clamp from 'lodash-es/clamp'
-import pingSound from './resources/ping.mp3'
+import { useRef, useState } from 'react'
+import * as THREE from 'three'
+import { proxy, useSnapshot } from 'valtio'
+
 import earthImg from './resources/cross.jpg'
+import pingSound from './resources/ping.mp3'
 
 const ping = new Audio(pingSound)
 const state = proxy({

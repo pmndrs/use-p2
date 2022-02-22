@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react'
-import type { PropsWithChildren } from 'react'
-import { useParticle } from '@react-three/p2'
-import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
-import type { BufferGeometry, Material } from 'three'
 import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
+import { useParticle } from '@react-three/p2'
+import type { PropsWithChildren } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import type { BufferGeometry, Material } from 'three'
 import type { Object3D } from 'three'
+import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
 
 const materials = ['White'] as const
 type FeatherMaterial = typeof materials[number]

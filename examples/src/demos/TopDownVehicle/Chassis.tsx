@@ -1,9 +1,9 @@
-import type * as THREE from 'three'
-import React, { forwardRef } from 'react'
+import { animated, config, useSpring } from '@react-spring/three'
 import { useGLTF } from '@react-three/drei'
-import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
+import React, { forwardRef } from 'react'
+import type * as THREE from 'three'
 import type { Object3D } from 'three'
-import { config, animated, useSpring } from '@react-spring/three'
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
 
 type GLTFResult = GLTF & {
   nodes: {

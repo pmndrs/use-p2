@@ -3,11 +3,11 @@
  * Original code from: https://github.com/SebLague/2DPlatformer-Tutorial
  */
 
+import type { Body, World } from 'p2-es'
 import { vec2 } from 'p2-es'
+
 import type { Duplet } from './'
 import Controller from './Controller'
-
-import type { World, Body } from 'p2-es'
 
 function lerp(factor: number, start: number, end: number) {
   return start + (end - start) * factor

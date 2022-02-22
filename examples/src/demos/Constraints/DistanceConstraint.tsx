@@ -1,9 +1,9 @@
-import { useDistanceConstraint, useBox } from '@react-three/p2'
-import React, { createContext, createRef, useContext } from 'react'
-import type { Color } from 'three'
+import type { BoxArgs } from '@react-three/p2'
+import { useBox, useDistanceConstraint } from '@react-three/p2'
 import { vec2 } from 'p2-es'
 import type { FC } from 'react'
-import type { BoxArgs } from '@react-three/p2'
+import React, { createContext, createRef, useContext } from 'react'
+import type { Color } from 'three'
 import type { Object3D } from 'three'
 
 type StaticHandleProps = {

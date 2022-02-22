@@ -1,13 +1,14 @@
-import { useRef, useState } from 'react'
-import type { PropsWithChildren } from 'react'
 import { useGLTF } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 import { useBox } from '@react-three/p2'
-import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
+import type { PropsWithChildren } from 'react'
+import { useRef, useState } from 'react'
 import type { BufferGeometry, Material } from 'three'
 import type { Object3D } from 'three'
-import { useFrame } from '@react-three/fiber'
-import usePlayer from './PlayerZustand'
+import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
+
 import { Feathers } from './Feathers'
+import usePlayer from './PlayerZustand'
 
 const materials = ['BrownDark', 'Black', 'Metal'] as const
 type SpikesMaterial = typeof materials[number]

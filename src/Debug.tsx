@@ -1,13 +1,14 @@
-import React, { useContext, useState, useRef, useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
+import type { Body } from 'p2-es'
+import { vec2 } from 'p2-es'
+import React, { useContext, useMemo, useRef, useState } from 'react'
+import { Euler, Quaternion, Scene, Vector3 } from 'three'
+
+import type { BodyProps, BodyShapeType } from './hooks'
 import type { DebugOptions } from './p2-debugger'
 import cannonDebugger from './p2-debugger'
-import { useFrame } from '@react-three/fiber'
-import { Vector3, Quaternion, Euler, Scene } from 'three'
-import { vec2 } from 'p2-es'
-import type { Body } from 'p2-es'
-import { context, debugContext } from './setup'
 import propsToBody from './propsToBody'
-import type { BodyProps, BodyShapeType } from './hooks'
+import { context, debugContext } from './setup'
 
 type DebugApi = {
   update: () => void

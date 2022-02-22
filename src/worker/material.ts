@@ -1,4 +1,4 @@
-import { Material, type MaterialOptions } from 'p2-es'
+import { type MaterialOptions, Material } from 'p2-es'
 
 export type CreateMaterial = (materialOptions?: MaterialOptions | number) => Material
 

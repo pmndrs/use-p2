@@ -1,12 +1,13 @@
-import { useCompoundBody, useRaycastClosest } from '@react-three/p2'
-import React, { useEffect, useState, useRef } from 'react'
-import type { PropsWithChildren } from 'react'
-import { useControls } from '../hooks'
-import { useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
-import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
-import type { BufferGeometry, Material } from 'three'
+import { useFrame, useThree } from '@react-three/fiber'
+import { useCompoundBody, useRaycastClosest } from '@react-three/p2'
 import { vec2 } from 'p2-es'
+import type { PropsWithChildren } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import type { BufferGeometry, Material } from 'three'
+import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
+
+import { useControls } from '../hooks'
 
 const materials = ['Black', 'White', 'Yellow'] as const
 type PlayerMaterial = typeof materials[number]

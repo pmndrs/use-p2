@@ -1,17 +1,17 @@
+import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import {
-  Physics,
   Debug,
+  Physics,
   useBox,
   useCapsule,
   useCircle,
   useConvex,
+  useHeightfield,
   useLine,
   useParticle,
   usePlane,
-  useHeightfield,
 } from '@react-three/p2'
-import { OrbitControls } from '@react-three/drei'
 import { vec2 } from 'p2-es'
 import type { PropsWithChildren } from 'react'
 

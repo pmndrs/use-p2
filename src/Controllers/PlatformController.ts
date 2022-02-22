@@ -1,9 +1,10 @@
-import RaycastController from './RaycastController'
-import type { RaycastControllerOptns } from './RaycastController'
-import { Ray, RaycastResult, vec2 } from 'p2-es'
 import type { Body } from 'p2-es'
+import { Ray, RaycastResult, vec2 } from 'p2-es'
+
 import type { Duplet } from './'
 import type KinematicCharacterController from './KinematicCharacterController'
+import type { RaycastControllerOptns } from './RaycastController'
+import RaycastController from './RaycastController'
 
 interface BodyWithUuid extends Body {
   uuid: string
