@@ -47,12 +47,12 @@ export type Quad = [x: number, y: number, z: number, w: number]
 
 export type BodyProps<T extends any[] = unknown[]> = Partial<AtomicProps> &
   Partial<VectorProps> & {
+    angle?: number
     args?: T
     onCollide?: (e: CollideEvent) => void
     onCollideBegin?: (e: CollideBeginEvent) => void
     onCollideEnd?: (e: CollideEndEvent) => void
     quaternion?: Quad
-    angle?: number
     type?: 'Dynamic' | 'Static' | 'Kinematic'
   }
 
@@ -98,20 +98,20 @@ export type AtomicApi<K extends AtomicName> = {
 }
 
 export type QuaternionApi = {
-  set: (x: number, y: number, z: number, w: number) => void
   copy: ({ w, x, y, z }: Quaternion) => void
+  set: (x: number, y: number, z: number, w: number) => void
   subscribe: (callback: (value: Quad) => void) => () => void
 }
 
 export type AngleApi = {
-  set: (angle: number) => void
   copy: (angle: number) => void
+  set: (angle: number) => void
   subscribe: (callback: (value: number) => void) => () => void
 }
 
 export type VectorApi = {
-  set: (x: number, y: number) => void
   copy: (array: Duplet) => void
+  set: (x: number, y: number) => void
   subscribe: (callback: (value: Duplet) => void) => () => void
 }
 
@@ -120,13 +120,13 @@ export type WorkerApi = {
 } & {
   [K in VectorName]: VectorApi
 } & {
+  angle: AngleApi
   applyForce: (force: Duplet, worldPoint: Duplet) => void
   applyImpulse: (impulse: Duplet, worldPoint: Duplet) => void
   applyLocalForce: (force: Duplet, localPoint: Duplet) => void
   applyLocalImpulse: (impulse: Duplet, localPoint: Duplet) => void
   applyTorque: (torque: Duplet) => void
   quaternion: QuaternionApi
-  angle: AngleApi
   sleep: () => void
   wakeUp: () => void
 }
@@ -152,41 +152,41 @@ export interface DistanceConstraintOpts extends ConstraintOptns {
 
 export interface GearConstraintOpts extends ConstraintOptns {
   angle?: number
-  ratio?: number
   maxTorque?: number
+  ratio?: number
 }
 
 export interface LockConstraintOpts extends ConstraintOptns {
-  localOffsetB?: Duplet
   localAngleB?: number
+  localOffsetB?: Duplet
   maxForce?: number
 }
 
 export interface PrismaticConstraintOpts extends ConstraintOptns {
-  maxForce?: number
+  disableRotationalLock?: boolean
   localAnchorA?: Duplet
   localAnchorB?: Duplet
   localAxisA?: Duplet
-  disableRotationalLock?: boolean
-  upperLimit?: number
   lowerLimit?: number
+  maxForce?: number
+  upperLimit?: number
 }
 
 export interface RevoluteConstraintOpts extends ConstraintOptns {
-  worldPivot?: Duplet
   localPivotA?: Duplet
   localPivotB?: Duplet
   maxForce?: number
+  worldPivot?: Duplet
 }
 
 export interface SpringOptns {
-  restLength?: number
-  stiffness?: number
   damping?: number
-  worldAnchorA?: Duplet
-  worldAnchorB?: Duplet
   localAnchorA?: Duplet
   localAnchorB?: Duplet
+  restLength?: number
+  stiffness?: number
+  worldAnchorA?: Duplet
+  worldAnchorB?: Duplet
 }
 
 const temp = new Object3D()
@@ -504,8 +504,8 @@ type ConstraintApi = [
   RefObject<Object3D>,
   RefObject<Object3D>,
   {
-    enable: () => void
     disable: () => void
+    enable: () => void
   },
 ]
 
@@ -513,12 +513,12 @@ type HingeConstraintApi = [
   RefObject<Object3D>,
   RefObject<Object3D>,
   {
-    enable: () => void
     disable: () => void
-    enableMotor: () => void
     disableMotor: () => void
-    setMotorSpeed: (value: number) => void
+    enable: () => void
+    enableMotor: () => void
     setMotorMaxForce: (value: number) => void
+    setMotorSpeed: (value: number) => void
   },
 ]
 
@@ -526,9 +526,9 @@ type SpringApi = [
   RefObject<Object3D>,
   RefObject<Object3D>,
   {
-    setStiffness: (value: number) => void
-    setRestLength: (value: number) => void
     setDamping: (value: number) => void
+    setRestLength: (value: number) => void
+    setStiffness: (value: number) => void
   },
 ]
 
@@ -573,7 +573,7 @@ function useConstraint<T extends 'Hinge' | ConstraintTypes>(
         disableMotor: () => worker.postMessage({ op: 'disableConstraintMotor', uuid }),
         enableMotor: () => worker.postMessage({ op: 'enableConstraintMotor', uuid }),
         setMotorMaxForce: (value: number) =>
-            worker.postMessage({ op: 'setConstraintMotorMaxForce', props: value, uuid }),
+          worker.postMessage({ op: 'setConstraintMotorMaxForce', props: value, uuid }),
         setMotorSpeed: (value: number) =>
           worker.postMessage({ op: 'setConstraintMotorSpeed', props: value, uuid }),
       }
@@ -803,47 +803,47 @@ export function useTopDownVehicle(
 type KinematicCharacterControllerCollisions = {
   above: boolean
   below: boolean
-  left: boolean
-  right: boolean
   climbingSlope: boolean
   descendingSlope: boolean
+  faceDir: number
+  fallingThroughPlatform: boolean
+  left: boolean
+  right: boolean
   slopeAngle: number
   slopeAngleOld: number
   velocityOld: Duplet
-  faceDir: number
-  fallingThroughPlatform: boolean
 }
 export interface KinematicCharacterControllerPublicApi {
-  setJump: (isDown: boolean) => void
-  setInput: (input: [x: number, y: number]) => void
   collisions: {
     subscribe: (callback: (collisions: KinematicCharacterControllerCollisions) => void) => void
   }
   raysData: {
     subscribe: (callback: (raysData: []) => void) => void
   }
+  setInput: (input: [x: number, y: number]) => void
+  setJump: (isDown: boolean) => void
 }
 
 export interface KinematicCharacterControllerProps {
-  body: Ref<Object3D>
-  collisionMask: number
   accelerationTimeAirborne?: number
   accelerationTimeGrounded?: number
+  body: Ref<Object3D>
+  collisionMask: number
+  dstBetweenRays?: number
+  maxClimbAngle?: number
+  maxDescendAngle?: number
+  maxJumpHeight?: number
+  minJumpHeight?: number
   moveSpeed?: number
-  wallSlideSpeedMax?: number
-  wallStickTime?: number
+  skinWidth?: number
+  timeToJumpApex?: number
+  velocityXMin?: number
+  velocityXSmoothing?: number
   wallJumpClimb?: Duplet
   wallJumpOff?: Duplet
   wallLeap?: Duplet
-  timeToJumpApex?: number
-  maxJumpHeight?: number
-  minJumpHeight?: number
-  velocityXSmoothing?: number
-  velocityXMin?: number
-  maxClimbAngle?: number
-  maxDescendAngle?: number
-  skinWidth?: number
-  dstBetweenRays?: number
+  wallSlideSpeedMax?: number
+  wallStickTime?: number
 }
 
 export function useKinematicCharacterController(
@@ -931,11 +931,11 @@ export interface PlatformControllerPublicApi {
 
 export interface PlatformControllerProps {
   body: Ref<Object3D>
-  passengerMask: number
-  localWaypoints: Duplet[]
-  speed?: number
-  skinWidth?: number
   dstBetweenRays?: number
+  localWaypoints: Duplet[]
+  passengerMask: number
+  skinWidth?: number
+  speed?: number
 }
 
 export function usePlatformController(

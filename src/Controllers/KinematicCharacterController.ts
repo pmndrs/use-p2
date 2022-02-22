@@ -14,52 +14,55 @@ function lerp(factor: number, start: number, end: number) {
 }
 
 export type KinematicCharacterControllerOptns = {
-  world: World
-  body: Body
-  collisionMask: number
   accelerationTimeAirborne?: number
   accelerationTimeGrounded?: number
+  body: Body
+  collisionMask: number
+  dstBetweenRays?: number
+  maxClimbAngle?: number
+  maxDescendAngle?: number
+  maxJumpHeight?: number
+  minJumpHeight?: number
   moveSpeed?: number
-  wallSlideSpeedMax?: number
-  wallStickTime?: number
+  skinWidth?: number
+  timeToJumpApex?: number
+  velocityXMin?: number
+  velocityXSmoothing?: number
   wallJumpClimb?: Duplet
   wallJumpOff?: Duplet
   wallLeap?: Duplet
-  timeToJumpApex?: number
-  maxJumpHeight?: number
-  minJumpHeight?: number
-  velocityXSmoothing?: number
-  velocityXMin?: number
-  maxClimbAngle?: number
-  maxDescendAngle?: number
-  skinWidth?: number
-  dstBetweenRays?: number
+  wallSlideSpeedMax?: number
+  wallStickTime?: number
+  world: World
 }
 
 export default class KinematicCharacterController extends Controller {
-  input: Duplet
+  _requestJump: boolean
+  _requestUnJump: boolean
 
   accelerationTimeAirborne: number
   accelerationTimeGrounded: number
+
+  gravity: number
+
+  input: Duplet
+
+  maxJumpVelocity: number
+  minJumpVelocity: number
+
   moveSpeed: number
-  wallSlideSpeedMax: number
-  wallStickTime: number
+
+  timeToWallUnstick: number
+
+  velocity: Duplet
+  velocityXMin: number
+  velocityXSmoothing: number
 
   wallJumpClimb: Duplet
   wallJumpOff: Duplet
   wallLeap: Duplet
-
-  gravity: number
-  maxJumpVelocity: number
-  minJumpVelocity: number
-
-  velocity: Duplet
-  velocityXSmoothing: number
-  velocityXMin: number
-
-  timeToWallUnstick: number
-  _requestJump: boolean
-  _requestUnJump: boolean
+  wallSlideSpeedMax: number
+  wallStickTime: number
 
   constructor(options: KinematicCharacterControllerOptns) {
     super(options)
@@ -110,7 +113,6 @@ export default class KinematicCharacterController extends Controller {
 
   /**
    * Should be executed after each physics tick, using the physics deltaTime.
-   * @param {number} deltaTime
    */
   update() {
     const scaledVelocity = vec2.create()

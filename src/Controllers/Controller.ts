@@ -26,24 +26,25 @@ function angle(a: Duplet, b: Duplet) {
  * @param {number} [options.maxDescendAngle]
  */
 export default class Controller extends RaycastController {
-  maxClimbAngle: number
-  maxDescendAngle: number
   collisions: {
     above: boolean
     below: boolean
-    left: boolean
-    right: boolean
     climbingSlope: boolean
     descendingSlope: boolean
+    faceDir: number
+    fallingThroughPlatform: boolean
+    left: boolean
+    right: boolean
     slopeAngle: number
     slopeAngleOld: number
     velocityOld: Duplet
-    faceDir: number
-    fallingThroughPlatform: boolean
   }
+  maxClimbAngle: number
+  maxDescendAngle: number
   ray: Ray
   raycastResult: RaycastResult
   raysData: [from: Duplet, to: Duplet, hitPoint: [number, number]][]
+
   constructor({
     world,
     body,
@@ -88,44 +89,54 @@ export default class Controller extends RaycastController {
     this.raysData = []
   }
 
-  resetCollisions(velocity: Duplet) {
+  climbSlope(velocity: Duplet, slopeAngle: number) {
     const collisions = this.collisions
+    const moveDistance = Math.abs(velocity[0])
+    const climbVelocityY = Math.sin(slopeAngle) * moveDistance
 
-    collisions.above = collisions.below = false
-    collisions.left = collisions.right = false
-    collisions.climbingSlope = false
-    collisions.descendingSlope = false
-    collisions.slopeAngleOld = collisions.slopeAngle
-    collisions.slopeAngle = 0
-    vec2.copy(collisions.velocityOld, velocity)
-  }
-
-  moveWithZeroInput(velocity: Duplet, standingOnPlatform: boolean) {
-    return this.move(velocity, ZERO, standingOnPlatform)
-  }
-
-  move(velocity: Duplet, input: Duplet, standingOnPlatform?: boolean) {
-    const collisions = this.collisions
-    this.updateRaycastOrigins()
-    this.resetCollisions(velocity)
-
-    if (velocity[0] !== 0) {
-      collisions.faceDir = sign(velocity[0])
-    }
-
-    if (velocity[1] < 0) {
-      this.descendSlope(velocity)
-    }
-    this.horizontalCollisions(velocity)
-    if (velocity[1] !== 0) {
-      this.verticalCollisions(velocity)
-    }
-
-    vec2.add(this.body.position, this.body.position, velocity)
-
-    if (standingOnPlatform) {
+    if (velocity[1] <= climbVelocityY) {
+      velocity[1] = climbVelocityY
+      velocity[0] = Math.cos(slopeAngle) * moveDistance * sign(velocity[0])
       collisions.below = true
+      collisions.climbingSlope = true
+      collisions.slopeAngle = slopeAngle
     }
+  }
+
+  descendSlope(velocity: Duplet) {
+    const raycastOrigins = this.raycastOrigins
+    const directionX = sign(velocity[0])
+    const collisions = this.collisions
+    const ray = this.ray
+    ray.collisionMask = this.collisionMask
+    vec2.copy(ray.from, directionX === -1 ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft)
+    vec2.set(ray.to, ray.from[0], ray.from[1] - 1e6)
+    ray.update()
+
+    this.world.raycast(this.raycastResult, ray)
+
+    if (this.raycastResult.body) {
+      const slopeAngle = angle(this.raycastResult.normal, UNIT_Y)
+      if (slopeAngle !== 0 && slopeAngle <= this.maxDescendAngle) {
+        if (sign(this.raycastResult.normal[0]) === directionX) {
+          if (
+            this.raycastResult.getHitDistance(ray) - this.skinWidth <=
+            Math.tan(slopeAngle) * Math.abs(velocity[0])
+          ) {
+            const moveDistance = Math.abs(velocity[0])
+            const descendVelocityY = Math.sin(slopeAngle) * moveDistance
+            velocity[0] = Math.cos(slopeAngle) * moveDistance * sign(velocity[0])
+            velocity[1] -= descendVelocityY
+
+            collisions.slopeAngle = slopeAngle
+            collisions.descendingSlope = true
+            collisions.below = true
+          }
+        }
+      }
+    }
+
+    this.raycastResult.reset()
   }
 
   horizontalCollisions(velocity: Duplet) {
@@ -190,6 +201,50 @@ export default class Controller extends RaycastController {
     }
   }
 
+  move(velocity: Duplet, input: Duplet, standingOnPlatform?: boolean) {
+    const collisions = this.collisions
+    this.updateRaycastOrigins()
+    this.resetCollisions(velocity)
+
+    if (velocity[0] !== 0) {
+      collisions.faceDir = sign(velocity[0])
+    }
+
+    if (velocity[1] < 0) {
+      this.descendSlope(velocity)
+    }
+    this.horizontalCollisions(velocity)
+    if (velocity[1] !== 0) {
+      this.verticalCollisions(velocity)
+    }
+
+    vec2.add(this.body.position, this.body.position, velocity)
+
+    if (standingOnPlatform) {
+      collisions.below = true
+    }
+  }
+
+  moveWithZeroInput(velocity: Duplet, standingOnPlatform: boolean) {
+    return this.move(velocity, ZERO, standingOnPlatform)
+  }
+
+  resetCollisions(velocity: Duplet) {
+    const collisions = this.collisions
+
+    collisions.above = collisions.below = false
+    collisions.left = collisions.right = false
+    collisions.climbingSlope = false
+    collisions.descendingSlope = false
+    collisions.slopeAngleOld = collisions.slopeAngle
+    collisions.slopeAngle = 0
+    vec2.copy(collisions.velocityOld, velocity)
+  }
+
+  resetFallingThroughPlatform() {
+    this.collisions.fallingThroughPlatform = false
+  }
+
   verticalCollisions(velocity: Duplet) {
     const collisions = this.collisions
     const skinWidth = this.skinWidth
@@ -244,59 +299,5 @@ export default class Controller extends RaycastController {
         }
       }
     }
-  }
-
-  climbSlope(velocity: Duplet, slopeAngle: number) {
-    const collisions = this.collisions
-    const moveDistance = Math.abs(velocity[0])
-    const climbVelocityY = Math.sin(slopeAngle) * moveDistance
-
-    if (velocity[1] <= climbVelocityY) {
-      velocity[1] = climbVelocityY
-      velocity[0] = Math.cos(slopeAngle) * moveDistance * sign(velocity[0])
-      collisions.below = true
-      collisions.climbingSlope = true
-      collisions.slopeAngle = slopeAngle
-    }
-  }
-
-  descendSlope(velocity: Duplet) {
-    const raycastOrigins = this.raycastOrigins
-    const directionX = sign(velocity[0])
-    const collisions = this.collisions
-    const ray = this.ray
-    ray.collisionMask = this.collisionMask
-    vec2.copy(ray.from, directionX === -1 ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft)
-    vec2.set(ray.to, ray.from[0], ray.from[1] - 1e6)
-    ray.update()
-
-    this.world.raycast(this.raycastResult, ray)
-
-    if (this.raycastResult.body) {
-      const slopeAngle = angle(this.raycastResult.normal, UNIT_Y)
-      if (slopeAngle !== 0 && slopeAngle <= this.maxDescendAngle) {
-        if (sign(this.raycastResult.normal[0]) === directionX) {
-          if (
-            this.raycastResult.getHitDistance(ray) - this.skinWidth <=
-            Math.tan(slopeAngle) * Math.abs(velocity[0])
-          ) {
-            const moveDistance = Math.abs(velocity[0])
-            const descendVelocityY = Math.sin(slopeAngle) * moveDistance
-            velocity[0] = Math.cos(slopeAngle) * moveDistance * sign(velocity[0])
-            velocity[1] -= descendVelocityY
-
-            collisions.slopeAngle = slopeAngle
-            collisions.descendingSlope = true
-            collisions.below = true
-          }
-        }
-      }
-    }
-
-    this.raycastResult.reset()
-  }
-
-  resetFallingThroughPlatform() {
-    this.collisions.fallingThroughPlatform = false
   }
 }

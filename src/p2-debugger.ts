@@ -8,13 +8,13 @@ import { Shape, vec2 } from 'p2-es'
 
 type ComplexShape = ShapeType & { geometryId?: number }
 export type DebugOptions = {
-  normalIndex?: number
+  autoUpdate?: boolean
   color?: number
   linewidth?: number
-  scale?: number
+  normalIndex?: number
   onInit?: (body: Body, mesh: Mesh, shape: ShapeType) => void
   onUpdate?: (body: Body, mesh: Mesh, shape: ShapeType) => void
-  autoUpdate?: boolean
+  scale?: number
 }
 
 export default function cannonDebugger(

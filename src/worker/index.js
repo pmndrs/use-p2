@@ -436,7 +436,7 @@ self.onmessage = (e) => {
         from,
         mode: Ray[mode.toUpperCase()],
         to,
-        ...options
+        ...options,
       })
       //options.mode = Ray[options.mode.toUpperCase()]
       options.result = new RaycastResult()

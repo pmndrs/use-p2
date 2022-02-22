@@ -22,38 +22,38 @@ function clamp(value: number, min: number, max: number) {
 const ZERO = vec2.create()
 
 interface PlatformControllerOptns extends RaycastControllerOptns {
-  localWaypoints: Duplet[]
   controllers: { [key: string]: KinematicCharacterController }
-  passengerMask: number
-  speed?: number
-  skinWidth?: number
   dstBetweenRays?: number
+  localWaypoints: Duplet[]
+  passengerMask: number
+  skinWidth?: number
+  speed?: number
 }
 
 export default class PlatformController extends RaycastController {
-  passengerMask: number
-
-  localWaypoints: Duplet[]
-  globalWaypoints: Duplet[]
-
-  speed: number
   cyclic: boolean
-  waitTime: number
   //[Range(0,2)]
   easeAmount: number
 
   fromWaypointIndex: number
-  percentBetweenWaypoints: number
+  globalWaypoints: Duplet[]
+  localWaypoints: Duplet[]
+
   nextMoveTime: number
 
-  passengerMovement: PassengerMovement[]
   passengerDictionary: { [key: string]: KinematicCharacterController }
-
-  time: number
+  passengerMask: number
+  passengerMovement: PassengerMovement[]
+  percentBetweenWaypoints: number
 
   ray: Ray
   raycastResult: RaycastResult
   raysData: [from: Duplet, to: Duplet, hitDistance?: number][]
+
+  speed: number
+
+  time: number
+  waitTime: number
 
   constructor(options: PlatformControllerOptns) {
     super(options)
@@ -101,85 +101,6 @@ export default class PlatformController extends RaycastController {
     })
 
     this.world.on('postStep', () => this.update(1 / 60))
-  }
-
-  update(deltaTime: number) {
-    this.time += deltaTime
-
-    super.updateRaycastOrigins()
-
-    const velocity = this.calculatePlatformMovement(deltaTime)
-
-    this.updateRaycastOrigins()
-
-    this.calculatePassengerMovement(velocity)
-
-    this.movePassengers(true)
-    vec2.set(this.body.position, this.body.position[0] + velocity[0], this.body.position[1] + velocity[1])
-    this.movePassengers(false)
-  }
-
-  ease(x: number) {
-    const a = this.easeAmount + 1
-    return Math.pow(x, a) / (Math.pow(x, a) + Math.pow(1 - x, a))
-  }
-
-  calculatePlatformMovement(deltaTime: number): Duplet {
-    if (this.time < this.nextMoveTime) {
-      return ZERO
-    }
-
-    const { globalWaypoints, speed } = this
-
-    this.fromWaypointIndex %= globalWaypoints.length
-    const toWaypointIndex = (this.fromWaypointIndex + 1) % globalWaypoints.length
-    const distanceBetweenWaypoints = vec2.distance(
-      globalWaypoints[this.fromWaypointIndex],
-      globalWaypoints[toWaypointIndex],
-    )
-    this.percentBetweenWaypoints += (deltaTime * speed) / distanceBetweenWaypoints
-    this.percentBetweenWaypoints = clamp(this.percentBetweenWaypoints, 0, 1)
-    const easedPercentBetweenWaypoints = this.ease(this.percentBetweenWaypoints)
-
-    const newPos = vec2.create()
-    vec2.lerp(
-      newPos,
-      globalWaypoints[this.fromWaypointIndex],
-      globalWaypoints[toWaypointIndex],
-      easedPercentBetweenWaypoints,
-    )
-
-    if (this.percentBetweenWaypoints >= 1) {
-      this.percentBetweenWaypoints = 0
-      this.fromWaypointIndex++
-
-      if (!this.cyclic) {
-        if (this.fromWaypointIndex >= globalWaypoints.length - 1) {
-          this.fromWaypointIndex = 0
-          globalWaypoints.reverse()
-        }
-      }
-      this.nextMoveTime = this.time + this.waitTime
-    }
-
-    const result = vec2.create()
-    vec2.subtract(result, newPos, this.body.position)
-    return result
-  }
-
-  movePassengers(beforeMovePlatform: boolean) {
-    this.passengerMovement.map((passenger) => {
-      if (!(passenger.uuid in this.passengerDictionary)) {
-        console.error('passenger uuid not in passengerDictionary')
-      }
-
-      if (passenger.moveBeforePlatform === beforeMovePlatform) {
-        this.passengerDictionary[passenger.uuid].moveWithZeroInput(
-          passenger.velocity,
-          passenger.standingOnPlatform,
-        )
-      }
-    })
   }
 
   calculatePassengerMovement(velocity: Duplet) {
@@ -331,20 +252,99 @@ export default class PlatformController extends RaycastController {
       }
     }
   }
+
+  calculatePlatformMovement(deltaTime: number): Duplet {
+    if (this.time < this.nextMoveTime) {
+      return ZERO
+    }
+
+    const { globalWaypoints, speed } = this
+
+    this.fromWaypointIndex %= globalWaypoints.length
+    const toWaypointIndex = (this.fromWaypointIndex + 1) % globalWaypoints.length
+    const distanceBetweenWaypoints = vec2.distance(
+      globalWaypoints[this.fromWaypointIndex],
+      globalWaypoints[toWaypointIndex],
+    )
+    this.percentBetweenWaypoints += (deltaTime * speed) / distanceBetweenWaypoints
+    this.percentBetweenWaypoints = clamp(this.percentBetweenWaypoints, 0, 1)
+    const easedPercentBetweenWaypoints = this.ease(this.percentBetweenWaypoints)
+
+    const newPos = vec2.create()
+    vec2.lerp(
+      newPos,
+      globalWaypoints[this.fromWaypointIndex],
+      globalWaypoints[toWaypointIndex],
+      easedPercentBetweenWaypoints,
+    )
+
+    if (this.percentBetweenWaypoints >= 1) {
+      this.percentBetweenWaypoints = 0
+      this.fromWaypointIndex++
+
+      if (!this.cyclic) {
+        if (this.fromWaypointIndex >= globalWaypoints.length - 1) {
+          this.fromWaypointIndex = 0
+          globalWaypoints.reverse()
+        }
+      }
+      this.nextMoveTime = this.time + this.waitTime
+    }
+
+    const result = vec2.create()
+    vec2.subtract(result, newPos, this.body.position)
+    return result
+  }
+
+  ease(x: number) {
+    const a = this.easeAmount + 1
+    return Math.pow(x, a) / (Math.pow(x, a) + Math.pow(1 - x, a))
+  }
+
+  movePassengers(beforeMovePlatform: boolean) {
+    this.passengerMovement.map((passenger) => {
+      if (!(passenger.uuid in this.passengerDictionary)) {
+        console.error('passenger uuid not in passengerDictionary')
+      }
+
+      if (passenger.moveBeforePlatform === beforeMovePlatform) {
+        this.passengerDictionary[passenger.uuid].moveWithZeroInput(
+          passenger.velocity,
+          passenger.standingOnPlatform,
+        )
+      }
+    })
+  }
+
+  update(deltaTime: number) {
+    this.time += deltaTime
+
+    super.updateRaycastOrigins()
+
+    const velocity = this.calculatePlatformMovement(deltaTime)
+
+    this.updateRaycastOrigins()
+
+    this.calculatePassengerMovement(velocity)
+
+    this.movePassengers(true)
+    vec2.set(this.body.position, this.body.position[0] + velocity[0], this.body.position[1] + velocity[1])
+    this.movePassengers(false)
+  }
 }
 
 type PassengerMovementOptns = {
-  velocity: Duplet
-  standingOnPlatform: boolean
   moveBeforePlatform: boolean
+  standingOnPlatform: boolean
   uuid: string
+  velocity: Duplet
 }
 
 class PassengerMovement {
-  velocity: Duplet
-  standingOnPlatform: boolean
   moveBeforePlatform: boolean
+  standingOnPlatform: boolean
   uuid: string
+  velocity: Duplet
 
   constructor(options: PassengerMovementOptns) {
     this.velocity = options.velocity || [0, 0]

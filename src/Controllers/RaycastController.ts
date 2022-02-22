@@ -13,30 +13,30 @@ function expandAABB({ lowerBound, upperBound }: { lowerBound: Duplet; upperBound
 }
 
 export type RaycastControllerOptns = {
-  world: World
   body: Body
   collisionMask?: number
-  skinWidth?: number
   dstBetweenRays?: number
+  skinWidth?: number
+  world: World
 }
 
 export default class RaycastController extends EventEmitter {
-  world: World
   body: Body
   bounds: AABB
   collisionMask: number
-  skinWidth: number
   dstBetweenRays: number
   horizontalRayCount: number
-  verticalRayCount: number
   horizontalRaySpacing: number
-  verticalRaySpacing: number
   raycastOrigins: {
-    topLeft: Duplet
-    topRight: Duplet
     bottomLeft: Duplet
     bottomRight: Duplet
+    topLeft: Duplet
+    topRight: Duplet
   }
+  skinWidth: number
+  verticalRayCount: number
+  verticalRaySpacing: number
+  world: World
   constructor(options: RaycastControllerOptns) {
     super()
 
@@ -66,15 +66,6 @@ export default class RaycastController extends EventEmitter {
     this.calculateRaySpacing()
   }
 
-  updateRaycastOrigins() {
-    this.calculateRaySpacing()
-
-    vec2.set(this.raycastOrigins.bottomLeft, this.bounds.lowerBound[0], this.bounds.lowerBound[1])
-    vec2.set(this.raycastOrigins.bottomRight, this.bounds.upperBound[0], this.bounds.lowerBound[1])
-    vec2.set(this.raycastOrigins.topLeft, this.bounds.lowerBound[0], this.bounds.upperBound[1])
-    vec2.set(this.raycastOrigins.topRight, this.bounds.upperBound[0], this.bounds.upperBound[1])
-  }
-
   calculateRaySpacing() {
     this.body.aabbNeedsUpdate = true
     this.bounds.copy(this.body.getAABB())
@@ -88,5 +79,14 @@ export default class RaycastController extends EventEmitter {
 
     this.horizontalRaySpacing = boundsHeight / (this.horizontalRayCount - 1)
     this.verticalRaySpacing = boundsWidth / (this.verticalRayCount - 1)
+  }
+
+  updateRaycastOrigins() {
+    this.calculateRaySpacing()
+
+    vec2.set(this.raycastOrigins.bottomLeft, this.bounds.lowerBound[0], this.bounds.lowerBound[1])
+    vec2.set(this.raycastOrigins.bottomRight, this.bounds.upperBound[0], this.bounds.lowerBound[1])
+    vec2.set(this.raycastOrigins.topLeft, this.bounds.lowerBound[0], this.bounds.upperBound[1])
+    vec2.set(this.raycastOrigins.topRight, this.bounds.upperBound[0], this.bounds.upperBound[1])
   }
 }
