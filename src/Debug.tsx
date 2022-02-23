@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import type { Body } from 'p2-es'
 import { vec2 } from 'p2-es'
+import type { FC } from 'react'
 import React, { useContext, useMemo, useRef, useState } from 'react'
 import { Euler, Quaternion, Scene, Vector3 } from 'three'
 
@@ -19,7 +20,6 @@ export type DebuggerInterface = (scene: Scene, bodies: Body[], props?: DebugOpti
 type DebugInfo = { bodies: Body[]; bodyMap: { [uuid: string]: Body } }
 
 export type DebugProps = {
-  children: React.ReactNode
   color?: number
   impl?: DebuggerInterface
   linewidth?: number
@@ -32,15 +32,15 @@ const s = new Vector3(1, 1, 1)
 const q = new Quaternion()
 let _v = []
 
-export function Debug({
+export const Debug: FC<DebugProps> = ({
   children,
   color = 0xffffff,
   normalIndex = 0,
   linewidth = 0.002,
   scale = 1,
   impl = cannonDebugger,
-}: DebugProps): JSX.Element {
-  const [{ bodies, bodyMap }] = useState<DebugInfo>({ bodies: [], bodyMap: {} })
+}) => {
+  const [{ bodies, bodyMap }] = useState<DebugInfo>({ bodies: [], bodyMap: {}})
   const { refs } = useContext(context)
   const [scene] = useState(() => new Scene())
   const p2DebuggerRef = useRef<DebugApi>(impl(scene, bodies, { color, linewidth, normalIndex, scale }))
