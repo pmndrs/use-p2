@@ -139,16 +139,10 @@ export const vectorNames = [
 ] as const
 export type VectorName = typeof vectorNames[number]
 
-export const subscriptionNames = [
-  ...atomicNames,
-  ...vectorNames,
-  'collisions',
-  'raysData',
-] as const
+export const subscriptionNames = [...atomicNames, ...vectorNames, 'collisions', 'raysData'] as const
 export type SubscriptionName = typeof subscriptionNames[number]
 
-export type SetOpName<T extends AtomicName | VectorName | WorldPropName> =
-  `set${Capitalize<T>}`
+export type SetOpName<T extends AtomicName | VectorName | WorldPropName> = `set${Capitalize<T>}`
 
 type NoProps = symbol
 
@@ -170,10 +164,7 @@ type AddRayProps = {
   from?: Duplet
   mode: RayMode
   to?: Duplet
-} & Pick<
-  RayOptionsImpl,
-  'checkCollisionResponse' | 'collisionGroup' | 'collisionMask' | 'skipBackfaces'
->
+} & Pick<RayOptionsImpl, 'checkCollisionResponse' | 'collisionGroup' | 'collisionMask' | 'skipBackfaces'>
 
 export type RayOptions = Omit<AddRayProps, 'mode'>
 
@@ -308,49 +299,43 @@ export type CannonMessageMap = {
   addConstraint: WithUUID<'addConstraint', AddConstraintProps> & { type: 'Hinge' | ConstraintTypes }
   addContactMaterial: WithUUID<'addContactMaterial', AddContactMaterialProps>
   addKinematicCharacterController: WithUUIDs<
-      'addKinematicCharacterController',
-      [
-        bodyUUID: string,
-        collisionMask: number,
-        accelerationTimeAirborne?: number,
-        accelerationTimeGrounded?: number,
-        moveSpeed?: number,
-        wallSlideSpeedMax?: number,
-        wallStickTime?: number,
-        wallJumpClimb?: Duplet,
-        wallJumpOff?: Duplet,
-        wallLeap?: Duplet,
-        timeToJumpApex?: number,
-        maxJumpHeight?: number,
-        minJumpHeight?: number,
-        velocityXSmoothing?: number,
-        velocityXMin?: number,
-        maxClimbAngle?: number,
-        maxDescendAngle?: number,
-        skinWidth?: number,
-        dstBetweenRays?: number,
-      ]
-      >
+    'addKinematicCharacterController',
+    [
+      bodyUUID: string,
+      collisionMask: number,
+      accelerationTimeAirborne?: number,
+      accelerationTimeGrounded?: number,
+      moveSpeed?: number,
+      wallSlideSpeedMax?: number,
+      wallStickTime?: number,
+      wallJumpClimb?: Duplet,
+      wallJumpOff?: Duplet,
+      wallLeap?: Duplet,
+      timeToJumpApex?: number,
+      maxJumpHeight?: number,
+      minJumpHeight?: number,
+      velocityXSmoothing?: number,
+      velocityXMin?: number,
+      maxClimbAngle?: number,
+      maxDescendAngle?: number,
+      skinWidth?: number,
+      dstBetweenRays?: number,
+    ]
+  >
   addPlatformController: WithUUIDs<
-      'addPlatformController',
-      [
-        bodyUUID: string,
-        passengerMask: number,
-        localWaypoints: Duplet[],
-        speed?: number,
-        skinWidth?: number,
-        dstBetweenRays?: number,
-      ]
-      >
+    'addPlatformController',
+    [
+      bodyUUID: string,
+      passengerMask: number,
+      localWaypoints: Duplet[],
+      speed?: number,
+      skinWidth?: number,
+      dstBetweenRays?: number,
+    ]
+  >
   addRay: WithUUID<'addRay', AddRayProps>
   addSpring: WithUUID<'addSpring', [uuidA: string, uuidB: string, options: SpringOptns]>
-  addTopDownVehicle: WithUUIDs<
-      'addTopDownVehicle',
-      [
-        chassisBodyUUID: string,
-        wheelInfos: WheelInfoOptions[],
-      ]
-      >
+  addTopDownVehicle: WithUUIDs<'addTopDownVehicle', [chassisBodyUUID: string, wheelInfos: WheelInfoOptions[]]>
   applyForce: WithUUID<'applyForce', [force: Duplet, worldPoint: Duplet]>
   applyImpulse: WithUUID<'applyImpulse', [impulse: Duplet, worldPoint: Duplet]>
   applyLocalForce: WithUUID<'applyLocalForce', [force: Duplet, localPoint: Duplet]>
@@ -389,7 +374,10 @@ export type CannonMessageMap = {
   setGravity: WorldMessage<'gravity'>
   setIsTrigger: AtomicMessage<'isTrigger'>
   setIterations: WorldMessage<'iterations'>
-  setKinematicCharacterControllerInput: WithUUID<'setKinematicCharacterControllerInput', [input: [x: number, y: number]]>
+  setKinematicCharacterControllerInput: WithUUID<
+    'setKinematicCharacterControllerInput',
+    [input: [x: number, y: number]]
+  >
   setKinematicCharacterControllerJump: WithUUID<'setKinematicCharacterControllerJump', [isDown: boolean]>
   setLinearDamping: AtomicMessage<'linearDamping'>
   setLinearFactor: VectorMessage

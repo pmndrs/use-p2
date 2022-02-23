@@ -4,10 +4,10 @@ import { vec2 } from 'p2-es'
 import type { PropsWithChildren } from 'react'
 
 type BoxProps = {
-  args: [width: number, height: number]
-  position: [x: number, y: number]
   angle: number
+  args: [width: number, height: number]
   mass?: number
+  position: [x: number, y: number]
 }
 
 function Box({ mass = 1, ...props }: BoxProps) {
@@ -24,7 +24,7 @@ function Box({ mass = 1, ...props }: BoxProps) {
   )
 }
 
-function Marble(props: PropsWithChildren<{ position: [x: number, y: number]; args: [radius: number] }>) {
+function Marble(props: PropsWithChildren<{ args: [radius: number], position: [x: number, y: number] }>) {
   const [ref] = useCircle(() => ({
     mass: 1,
     ...props,
@@ -45,7 +45,7 @@ const dominos = new Array(10)
   .map((d, i) => vec2.fromValues(dominoStart[0] + 1.4 * i, dominoStart[1]))
 
 export default () => (
-  <Canvas shadows orthographic camera={{ position: [15, 10, 15], zoom: 35, near: 1, far: 100 }}>
+  <Canvas shadows orthographic camera={{ far: 100, near: 1, position: [15, 10, 15], zoom: 35 }}>
     <color attach="background" args={['#171720']} />
     <fog attach="fog" args={['#171720', 20, 70]} />
     <ambientLight intensity={0.2} />

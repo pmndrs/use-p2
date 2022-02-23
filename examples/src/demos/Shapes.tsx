@@ -26,8 +26,13 @@ function Box() {
 }
 
 function Capsule() {
-  const [ref] = useCapsule(() => ({ mass: 1, position: [2, 3], args: [2, 0.3], angle: Math.PI / 2 - 0.01 }))
-  return <group ref={ref}></group>
+  const [ref] = useCapsule(() => ({
+    angle: Math.PI / 2 - 0.01,
+    args: [2, 0.3],
+    mass: 1,
+    position: [2, 3],
+  }))
+  return <group ref={ref}> </group>
 }
 
 function Circle() {
@@ -47,8 +52,8 @@ function Convex() {
     const vertex = [0.5 * Math.cos(a), 0.5 * Math.sin(a)]
     vertices.push(vertex)
   }
-  const [ref] = useConvex(() => ({ mass: 1, position: [3.5, 5], args: [vertices] }))
-  return <group ref={ref}></group>
+  const [ref] = useConvex(() => ({ args: [vertices], mass: 1, position: [3.5, 5] }))
+  return <group ref={ref}> </group>
 }
 
 function Heightfield() {
@@ -57,13 +62,18 @@ function Heightfield() {
   for (let i = 0; i < numDataPoints; i++) {
     data.push(0.5 * Math.cos(0.2 * i) * Math.sin(0.5 * i) + 0.6 * Math.sin(0.1 * i) * Math.sin(0.05 * i))
   }
-  const [ref] = useHeightfield(() => ({ mass: 0, position: [-6, 0.2], args: [data, { elementWidth: 0.5 }] }))
-  return <group ref={ref}></group>
+  const [ref] = useHeightfield(() => ({ args: [data, { elementWidth: 0.5 }], mass: 0, position: [-6, 0.2] }))
+  return <group ref={ref}> </group>
 }
 
 function Line() {
-  const [ref] = useLine(() => ({ mass: 0, args: [10], position: [3, 0], angle: Math.PI / 5 }))
-  return <group ref={ref}></group>
+  const [ref] = useLine(() => ({
+    angle: Math.PI / 5,
+    args: [10],
+    mass: 0,
+    position: [3, 0],
+  }))
+  return <group ref={ref}> </group>
 }
 
 function Particle({
@@ -71,13 +81,12 @@ function Particle({
   velocity,
 }: PropsWithChildren<{ position: [x: number, y: number]; velocity: [x: number, y: number] }>) {
   const [ref] = useParticle(() => ({ mass: 0.01, position, velocity }))
-  return <group ref={ref}></group>
+  return <group ref={ref}> </group>
 }
 
 function ParticleSystem() {
   const arr = new Array(10).fill([]).map(() => {
-    const a = vec2.fromValues(-1 + Math.random() * 3, 3 + Math.random() * 3)
-    return a
+    return vec2.fromValues(-1 + Math.random() * 3, 3 + Math.random() * 3)
   })
   return (
     <>

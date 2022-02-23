@@ -55,7 +55,7 @@ export const Provider: FC<ProviderProps> = ({
   axisIndex = 0,
   broadphase = 'Naive',
   children,
-  defaultContactMaterial = {friction: 0.3, restitution: 0},
+  defaultContactMaterial = { friction: 0.3, restitution: 0 },
   gravity = [0, -9.81],
   isPaused = false,
   iterations = 5,

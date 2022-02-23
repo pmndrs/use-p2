@@ -12,16 +12,16 @@ const colors = [
 
 function Box(props) {
   const [ref] = useBox(() => ({
-    type: 'Kinematic',
-    args: props.args,
-    position: props.position,
     angle: props.angle,
+    args: props.args,
     material: props.material,
+    position: props.position,
+    type: 'Kinematic',
   }))
 
   return (
     <mesh ref={ref}>
-      <boxGeometry args={[...props.args, 1]} />
+      <boxGeometry args={[props.args[0], props.args[1], 1]} />
       <meshBasicMaterial color={colors[props.material.id]} />
     </mesh>
   )
@@ -29,15 +29,15 @@ function Box(props) {
 
 function FallingBox(props) {
   const [ref] = useBox(() => ({
-    mass: 3,
-    args: props.args,
-    position: props.position,
-    material: props.material,
     angularDamping: 0.9,
+    args: props.args,
+    mass: 3,
+    material: props.material,
+    position: props.position,
   }))
   return (
     <mesh ref={ref}>
-      <boxBufferGeometry args={[...props.args, 0.5]} />
+      <boxBufferGeometry args={[props.args[0], props.args[1], 0.5]} />
       <meshBasicMaterial color={colors[props.material.id]} />
     </mesh>
   )
@@ -45,11 +45,10 @@ function FallingBox(props) {
 
 function Flummi(props) {
   const [ref] = useCircle(() => ({
-    mass: 3,
     args: [0.25],
-    position: props.position,
+    mass: 3,
     material: props.material,
-    //angularDamping: 0.9,
+    position: props.position,
   }))
   return (
     <mesh ref={ref}>
@@ -66,13 +65,13 @@ const FrictionScene = () => {
     id: 1,
   }
   const slipperyMaterial = {
-    id: 2,
+    friction: 0,
     /*
         Friction for this material.
         If non-negative, it will be used instead of the friction given by ContactMaterials.
         If there's no matching ContactMaterial, the value from .defaultContactMaterial in the World will be used.
         */
-    friction: 0,
+    id: 2,
   }
   const rubberMaterial = {
     id: 3,
@@ -95,17 +94,17 @@ const FrictionScene = () => {
 
   useContactMaterial(groundMaterial, groundMaterial, {
     friction: 0.4,
+    frictionStiffness: 1e8,
+    relaxation: 3,
     restitution: 0.3,
     stiffness: 1e8,
-    relaxation: 3,
-    frictionStiffness: 1e8,
   })
   useContactMaterial(boxMaterial, groundMaterial, {
     friction: 0.4,
+    frictionStiffness: 1e8,
+    relaxation: 3,
     restitution: 0.3,
     stiffness: 1e8,
-    relaxation: 3,
-    frictionStiffness: 1e8,
   })
 
   useContactMaterial(boxMaterial, slipperyMaterial, {
@@ -175,12 +174,12 @@ export default () => (
     </Canvas>
     <div
       style={{
-        position: 'absolute',
         bottom: '50px',
-        left: '50vw',
-        transform: 'translate(-50%, 0)',
         color: 'white',
         display: 'none',
+        left: '50vw',
+        position: 'absolute',
+        transform: 'translate(-50%, 0)',
       }}
     >
       <p>

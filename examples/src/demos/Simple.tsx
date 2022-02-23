@@ -2,10 +2,7 @@ import { Canvas } from '@react-three/fiber'
 import { Physics, useBox, useCircle } from '@react-three/p2'
 
 function Box() {
-  const [ref] = useBox(() => ({
-    type: 'Kinematic',
-    position: [0, -2],
-  }))
+  const [ref] = useBox(() => ({ position: [0, -2], type: 'Kinematic' }))
   return (
     <mesh ref={ref}>
       <boxGeometry />

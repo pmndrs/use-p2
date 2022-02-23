@@ -1,7 +1,7 @@
 import type { ContactMaterialOptions, MaterialOptions } from 'p2-es'
 import type { DependencyList, MutableRefObject, Ref, RefObject } from 'react'
 import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { DynamicDrawUsage, InstancedMesh, MathUtils, Object3D} from 'three'
+import { DynamicDrawUsage, InstancedMesh, MathUtils, Object3D } from 'three'
 
 import type {
   AtomicName,
@@ -629,10 +629,7 @@ export function useTopDownVehicle(
 
     const currentWorker = worker
     const uuid: string[] = [ref.current.uuid]
-    const {
-      chassisBody,
-      wheels,
-    } = fn()
+    const { chassisBody, wheels } = fn()
 
     const chassisBodyUUID = getUUID(chassisBody)
     if (!chassisBodyUUID) return

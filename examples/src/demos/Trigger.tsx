@@ -7,8 +7,8 @@ function Box() {
 
   const [ref] = useBox(() => ({
     args: [3, 1],
-    mass: 0,
     isTrigger: true,
+    mass: 0,
     onCollideBegin: (e) => {
       console.log('onCollideBegin BoxTrigger', e)
       setColor(0x00ff00)
@@ -29,7 +29,7 @@ function Box() {
 }
 
 function Ball() {
-  const [ref] = useCircle(() => ({ mass: 1, position: [0, 5], args: [0.5] }))
+  const [ref] = useCircle(() => ({ args: [0.5], mass: 1, position: [0, 5] }))
   return (
     <mesh ref={ref}>
       <sphereGeometry args={[0.5]} />

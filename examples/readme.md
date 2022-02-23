@@ -1,4 +1,4 @@
-# @react-three/cannon-examples
+# @react-three/p2-examples
 
 The examples rely on an alias pointing to `../dist/index`, the parent project must have been built previously.
 

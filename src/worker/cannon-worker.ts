@@ -11,8 +11,6 @@ import type {
 } from '../setup'
 // @ts-expect-error Types are not setup for this yet
 import Worker from './worker'
-import {Ref} from "react";
-import {Object3D} from "three";
 
 export type CannonWorkerProps = Partial<WorldProps> & { size?: number }
 
@@ -146,29 +144,29 @@ export class CannonWorker extends EventEmitter {
   }
 
   addKinematicCharacterController({
-                                    props: [
-                                      accelerationTimeAirborne,
-                                      accelerationTimeGrounded,
-                                      body,
-                                      collisionMask,
-                                      dstBetweenRays,
-                                      maxClimbAngle,
-                                      maxDescendAngle,
-                                      maxJumpHeight,
-                                      minJumpHeight,
-                                      moveSpeed,
-                                      skinWidth,
-                                      timeToJumpApex,
-                                      velocityXMin,
-                                      velocityXSmoothing,
-                                      wallJumpClimb,
-                                      wallJumpOff,
-                                      wallLeap,
-                                      wallSlideSpeedMax,
-                                      wallStickTime,
-                                    ],
-                                    uuid,
-                                  }: CannonMessageBody<'addKinematicCharacterController'>): void {
+    props: [
+      accelerationTimeAirborne,
+      accelerationTimeGrounded,
+      body,
+      collisionMask,
+      dstBetweenRays,
+      maxClimbAngle,
+      maxDescendAngle,
+      maxJumpHeight,
+      minJumpHeight,
+      moveSpeed,
+      skinWidth,
+      timeToJumpApex,
+      velocityXMin,
+      velocityXSmoothing,
+      wallJumpClimb,
+      wallJumpOff,
+      wallLeap,
+      wallSlideSpeedMax,
+      wallStickTime,
+    ],
+    uuid,
+  }: CannonMessageBody<'addKinematicCharacterController'>): void {
     this.worker.postMessage({
       op: 'addKinematicCharacterController',
       props: [
@@ -197,26 +195,12 @@ export class CannonWorker extends EventEmitter {
   }
 
   addPlatformController({
-                                    props: [
-                                      body,
-                                      passengerMask,
-                                      localWaypoints,
-                                      speed,
-                                      skinWidth,
-                                      dstBetweenRays,
-                                    ],
-                                    uuid,
-                                  }: CannonMessageBody<'addPlatformController'>): void {
+    props: [body, passengerMask, localWaypoints, speed, skinWidth, dstBetweenRays],
+    uuid,
+  }: CannonMessageBody<'addPlatformController'>): void {
     this.worker.postMessage({
       op: 'addPlatformController',
-      props: [
-        body,
-        passengerMask,
-        localWaypoints,
-        speed,
-        skinWidth,
-        dstBetweenRays,
-      ],
+      props: [body, passengerMask, localWaypoints, speed, skinWidth, dstBetweenRays],
       uuid,
     })
   }
@@ -333,7 +317,9 @@ export class CannonWorker extends EventEmitter {
     this.worker.postMessage({ op: 'removeContactMaterial', uuid })
   }
 
-  removeKinematicCharacterController({ uuid }: CannonMessageBody<'removeKinematicCharacterController'>): void {
+  removeKinematicCharacterController({
+    uuid,
+  }: CannonMessageBody<'removeKinematicCharacterController'>): void {
     this.worker.postMessage({ op: 'removeKinematicCharacterController', uuid })
   }
 
@@ -401,11 +387,17 @@ export class CannonWorker extends EventEmitter {
     this.worker.postMessage({ op: 'setIsTrigger', props, uuid })
   }
 
-  setKinematicCharacterControllerInput({ props, uuid }: CannonMessageBody<'setKinematicCharacterControllerInput'>): void {
+  setKinematicCharacterControllerInput({
+    props,
+    uuid,
+  }: CannonMessageBody<'setKinematicCharacterControllerInput'>): void {
     this.worker.postMessage({ op: 'setKinematicCharacterControllerInput', props, uuid })
   }
 
-  setKinematicCharacterControllerJump({ props, uuid }: CannonMessageBody<'setKinematicCharacterControllerJump'>): void {
+  setKinematicCharacterControllerJump({
+    props,
+    uuid,
+  }: CannonMessageBody<'setKinematicCharacterControllerJump'>): void {
     this.worker.postMessage({ op: 'setKinematicCharacterControllerJump', props, uuid })
   }
 
