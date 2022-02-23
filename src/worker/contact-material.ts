@@ -1,7 +1,7 @@
 import type { World } from 'p2-es'
 import { ContactMaterial } from 'p2-es'
 
-import type { AddContactMaterialMessage } from '../setup'
+import type { CannonMessageBody } from '../setup'
 import type { CreateMaterial } from './material'
 
 type WithUUID<C> = C & { uuid: string }
@@ -10,7 +10,7 @@ type DecoratedWorld = Omit<World, 'contactmaterials'> & { contactmaterials: With
 export const addContactMaterial = (
   world: World,
   createMaterial: CreateMaterial,
-  [materialA, materialB, options]: AddContactMaterialMessage['props'],
+  [materialA, materialB, options]: CannonMessageBody<'addContactMaterial'>['props'],
   uuid: string,
 ) => {
   const matA = createMaterial(materialA)

@@ -1,22 +1,76 @@
-import type { ContactMaterialOptions, MaterialOptions, RayOptions } from 'p2-es'
+import type { ContactMaterialOptions, MaterialOptions, RayOptions as RayOptionsImpl, Shape } from 'p2-es'
 import type { MutableRefObject } from 'react'
 import { createContext } from 'react'
 import type { Object3D } from 'three'
+import type { CannonWorker } from 'worker/cannon-worker'
 
-import type {
-  AtomicProps,
-  BodyProps,
-  BodyShapeType,
-  ConstraintTypes,
-  Quad,
-  SpringOptns,
-  WheelOptions,
-} from './hooks'
-import type { Duplet } from './hooks'
-import type { ProviderProps, WorkerCollideEvent, WorkerRayhitEvent } from './Provider'
+import type { AtomicProps, BodyProps, BodyShapeType } from './hooks'
 
+export type Duplet = [x: number, y: number]
+export type Quad = [x: number, y: number, z: number, w: number]
+
+export type Broadphase = 'Naive' | 'SAP'
+export type Solver = 'GS' | 'Split'
 export type Buffers = { positions: Float32Array; quaternions: Float32Array }
 export type Refs = { [uuid: string]: Object3D }
+
+export type ConstraintTypes = 'Distance' | 'Gear' | 'Lock' | 'Prismatic' | 'Revolute'
+
+export interface ConstraintOptns {
+  collideConnected?: boolean
+}
+
+export interface DistanceConstraintOpts extends ConstraintOptns {
+  distance?: number
+  localAnchorA?: Duplet
+  localAnchorB?: Duplet
+  maxForce?: number
+}
+
+export interface GearConstraintOpts extends ConstraintOptns {
+  angle?: number
+  maxTorque?: number
+  ratio?: number
+}
+
+export interface LockConstraintOpts extends ConstraintOptns {
+  localAngleB?: number
+  localOffsetB?: Duplet
+  maxForce?: number
+}
+
+export interface PrismaticConstraintOpts extends ConstraintOptns {
+  disableRotationalLock?: boolean
+  localAnchorA?: Duplet
+  localAnchorB?: Duplet
+  localAxisA?: Duplet
+  lowerLimit?: number
+  maxForce?: number
+  upperLimit?: number
+}
+
+export interface RevoluteConstraintOpts extends ConstraintOptns {
+  localPivotA?: Duplet
+  localPivotB?: Duplet
+  maxForce?: number
+  worldPivot?: Duplet
+}
+
+export interface SpringOptns {
+  damping?: number
+  localAnchorA?: Duplet
+  localAnchorB?: Duplet
+  restLength?: number
+  stiffness?: number
+  worldAnchorA?: Duplet
+  worldAnchorB?: Duplet
+}
+
+export interface WheelInfoOptions {
+  localPosition?: Duplet
+  sideFriction?: number
+}
+
 type WorkerContact = WorkerCollideEvent['data']['contact']
 export type CollideEvent = Omit<WorkerCollideEvent['data'], 'body' | 'target' | 'contact'> & {
   body: Object3D
@@ -28,7 +82,6 @@ export type CollideEvent = Omit<WorkerCollideEvent['data'], 'body' | 'target' | 
 }
 export type CollideBeginEvent = {
   body: Object3D
-  contacts: []
   op: 'event'
   target: Object3D
   type: 'collideBegin'
@@ -57,8 +110,6 @@ export type PropValue<T extends SubscriptionName = SubscriptionName> = T extends
   ? AtomicProps[T]
   : T extends VectorName
   ? Duplet
-  : T extends 'quaternion'
-  ? Quad
   : never
 
 export const atomicNames = [
@@ -91,233 +142,297 @@ export type VectorName = typeof vectorNames[number]
 export const subscriptionNames = [
   ...atomicNames,
   ...vectorNames,
-  'quaternion',
   'collisions',
   'raysData',
 ] as const
 export type SubscriptionName = typeof subscriptionNames[number]
 
-export type SetOpName<T extends AtomicName | VectorName | WorldPropName | 'quaternion' | 'rotation'> =
+export type SetOpName<T extends AtomicName | VectorName | WorldPropName> =
   `set${Capitalize<T>}`
 
-type Operation<T extends string, P> = { op: T } & (P extends void ? {} : { props: P })
-type WithUUID<T extends string, P = void> = Operation<T, P> & { uuid: string }
-type WithUUIDs<T extends string, P = void> = Operation<T, P> & { uuid: string[] }
+type NoProps = symbol
 
-type AddConstraintMessage = WithUUID<'addConstraint', [uuidA: string, uuidB: string, options: {}]> & {
-  type: 'Hinge' | ConstraintTypes
-}
+type Operation<T extends OpName, P> = { op: T } & (P extends NoProps ? {} : { props: P })
+type WithUUID<T extends OpName, P = NoProps> = Operation<T, P> & { uuid: string }
+type WithUUIDs<T extends OpName, P = NoProps> = Operation<T, P> & { uuid: string[] }
 
-type DisableConstraintMessage = WithUUID<'disableConstraint'>
-type EnableConstraintMessage = WithUUID<'enableConstraint'>
-type RemoveConstraintMessage = WithUUID<'removeConstraint'>
+type AddConstraintProps = [uuidA: string, uuidB: string, options: {}]
 
-type ConstraintMessage =
-  | AddConstraintMessage
-  | DisableConstraintMessage
-  | EnableConstraintMessage
-  | RemoveConstraintMessage
-
-type DisableConstraintMotorMessage = WithUUID<'disableConstraintMotor'>
-type EnableConstraintMotorMessage = WithUUID<'enableConstraintMotor'>
-type SetConstraintMotorMaxForce = WithUUID<'setConstraintMotorMaxForce', number>
-type SetConstraintMotorSpeed = WithUUID<'setConstraintMotorSpeed', number>
-
-type ConstraintMotorMessage =
-  | DisableConstraintMotorMessage
-  | EnableConstraintMotorMessage
-  | SetConstraintMotorSpeed
-  | SetConstraintMotorMaxForce
-
-type AddSpringMessage = WithUUID<'addSpring', [uuidA: string, uuidB: string, options: SpringOptns]>
-type RemoveSpringMessage = WithUUID<'removeSpring'>
-
-type SetSpringDampingMessage = WithUUID<'setSpringDamping', number>
-type SetSpringRestLengthMessage = WithUUID<'setSpringRestLength', number>
-type SetSpringStiffnessMessage = WithUUID<'setSpringStiffness', number>
-
-type SpringMessage =
-  | AddSpringMessage
-  | RemoveSpringMessage
-  | SetSpringDampingMessage
-  | SetSpringRestLengthMessage
-  | SetSpringStiffnessMessage
-
-export type AddContactMaterialMessage = WithUUID<
-  'addContactMaterial',
-  [materialA: MaterialOptions, materialB: MaterialOptions, options: ContactMaterialOptions]
->
-type RemoveContactMaterialMessage = WithUUID<'removeContactMaterial'>
-type ContactMaterialMessage = AddContactMaterialMessage | RemoveContactMaterialMessage
+type AddContactMaterialProps = [
+  materialA: MaterialOptions,
+  materialB: MaterialOptions,
+  options: ContactMaterialOptions,
+]
 
 export type RayMode = 'Closest' | 'Any' | 'All'
 
-export type AddRayMessage = WithUUID<
-  'addRay',
-  {
-    from?: Duplet
-    mode: RayMode
-    to?: Duplet
-  } & Pick<RayOptions, 'checkCollisionResponse' | 'collisionGroup' | 'collisionMask' | 'skipBackfaces'>
+type AddRayProps = {
+  from?: Duplet
+  mode: RayMode
+  to?: Duplet
+} & Pick<
+  RayOptionsImpl,
+  'checkCollisionResponse' | 'collisionGroup' | 'collisionMask' | 'skipBackfaces'
 >
 
-type RemoveRayMessage = WithUUID<'removeRay'>
+export type RayOptions = Omit<AddRayProps, 'mode'>
 
-type RayMessage = AddRayMessage | RemoveRayMessage
-
-type AddTopDownVehicleMessage = WithUUIDs<
-  'addTopDownVehicle',
-  [chassisBodyUUID: string, wheelInfos: WheelOptions[]]
->
-type RemoveTopDownVehicleMessage = WithUUIDs<'removeTopDownVehicle'>
-
-type ApplyTopDownVehicleEngineForceMessage = WithUUID<
-  'applyTopDownVehicleEngineForce',
-  [value: number, wheelIndex: number]
->
-type SetTopDownVehicleBrakeMessage = WithUUID<'setTopDownVehicleBrake', [brake: number, wheelIndex: number]>
-type SetTopDownVehicleSteeringValueMessage = WithUUID<
-  'setTopDownVehicleSteeringValue',
-  [value: number, wheelIndex: number]
->
-
-type TopDownVehicleMessage =
-  | AddTopDownVehicleMessage
-  | ApplyTopDownVehicleEngineForceMessage
-  | RemoveTopDownVehicleMessage
-  | SetTopDownVehicleBrakeMessage
-  | SetTopDownVehicleSteeringValueMessage
-
-type AddKinematicCharacterControllerMessage = WithUUIDs<
-  'addKinematicCharacterController',
-  [
-    bodyUUID: string,
-    collisionMask: number,
-    accelerationTimeAirborne?: number,
-    accelerationTimeGrounded?: number,
-    moveSpeed?: number,
-    wallSlideSpeedMax?: number,
-    wallStickTime?: number,
-    wallJumpClimb?: Duplet,
-    wallJumpOff?: Duplet,
-    wallLeap?: Duplet,
-    timeToJumpApex?: number,
-    maxJumpHeight?: number,
-    minJumpHeight?: number,
-    velocityXSmoothing?: number,
-    velocityXMin?: number,
-    maxClimbAngle?: number,
-    maxDescendAngle?: number,
-    skinWidth?: number,
-    dstBetweenRays?: number,
-  ]
->
-type RemoveKinematicCharacterControllerMessage = WithUUIDs<'removeKinematicCharacterController'>
-type SetKinematicCharacterControllerJumpMessage = WithUUID<
-  'setKinematicCharacterControllerJump',
-  [isDown: boolean]
->
-type SetKinematicCharacterControllerInputMessage = WithUUID<
-  'setKinematicCharacterControllerInput',
-  [input: [x: number, y: number]]
->
-
-type KinematicCharacterControllerMessage =
-  | AddKinematicCharacterControllerMessage
-  | RemoveKinematicCharacterControllerMessage
-  | SetKinematicCharacterControllerJumpMessage
-  | SetKinematicCharacterControllerInputMessage
-
-type AddPlatformControllerMessage = WithUUIDs<
-  'addPlatformController',
-  [
-    bodyUUID: string,
-    passengerMask: number,
-    localWaypoints: Duplet[],
-    speed?: number,
-    skinWidth?: number,
-    dstBetweenRays?: number,
-  ]
->
-type RemovePlatformControllerMessage = WithUUIDs<'removePlatformController'>
-
-type PlatformControllerMessage = AddPlatformControllerMessage | RemovePlatformControllerMessage
-
-type AtomicMessage = WithUUID<SetOpName<AtomicName>, any>
-type QuaternionMessage = WithUUID<SetOpName<'quaternion'>, Quad>
-type RotationMessage = WithUUID<SetOpName<'rotation'>, number>
+type AtomicMessage<T extends AtomicName> = WithUUID<SetOpName<AtomicName>, PropValue<T>>
 type VectorMessage = WithUUID<SetOpName<VectorName>, Duplet>
-
-type ApplyForceMessage = WithUUID<'applyForce', [force: Duplet, worldPoint: Duplet]>
-type ApplyImpulseMessage = WithUUID<'applyImpulse', [impulse: Duplet, worldPoint: Duplet]>
-type ApplyLocalForceMessage = WithUUID<'applyLocalForce', [force: Duplet, localPoint: Duplet]>
-type ApplyLocalImpulseMessage = WithUUID<'applyLocalImpulse', [impulse: Duplet, localPoint: Duplet]>
-type ApplyTorque = WithUUID<'applyTorque', [torque: Duplet]>
-
-type ApplyMessage =
-  | ApplyForceMessage
-  | ApplyImpulseMessage
-  | ApplyLocalForceMessage
-  | ApplyLocalImpulseMessage
-  | ApplyTorque
 
 type SerializableBodyProps = {
   onCollide: boolean
 }
 
-type AddBodiesMessage = WithUUIDs<'addBodies', SerializableBodyProps[]> & { type: BodyShapeType }
-type RemoveBodiesMessage = WithUUIDs<'removeBodies'>
-
-type BodiesMessage = AddBodiesMessage | RemoveBodiesMessage
-
-type SleepMessage = WithUUID<'sleep'>
-type WakeUpMessage = WithUUID<'wakeUp'>
-
 export type SubscriptionTarget = 'bodies' | 'vehicles' | 'controllers'
 
-type SubscribeMessage = WithUUID<
-  'subscribe',
-  {
-    id: number
-    target: SubscriptionTarget
-    type: SubscriptionName
+type SubscribeMessageProps = {
+  id: number
+  target: SubscriptionTarget
+  type: SubscriptionName
+}
+
+export type Observation = { [K in AtomicName]: [id: number, value: PropValue<K>, type: K] }[AtomicName]
+
+export type WorkerFrameMessage = {
+  data: Buffers & {
+    active: boolean
+    bodies?: string[]
+    observations: Observation[]
+    op: 'frame'
   }
->
-type UnsubscribeMessage = Operation<'unsubscribe', number>
+}
 
-type SubscriptionMessage = SubscribeMessage | UnsubscribeMessage
+export type WorkerCollideEvent = {
+  data: {
+    body: string
+    collisionFilters: {
+      bodyFilterGroup: number
+      bodyFilterMask: number
+      targetFilterGroup: number
+      targetFilterMask: number
+    }
+    contact: {
+      bi: string
+      bj: string
+      /** Normal of the contact, relative to the colliding body */
+      contactNormal: number[]
+      /** Contact point in world space */
+      contactPoint: number[]
+      id: string
+      impactVelocity: number
+      ni: number[]
+      ri: number[]
+      rj: number[]
+    }
+    op: 'event'
+    target: string
+    type: 'collide'
+  }
+}
 
-export type WorldPropName = 'axisIndex' | 'broadphase' | 'gravity' | 'iterations' | 'step' | 'tolerance'
+export type WorkerRayhitEvent = {
+  data: {
+    body: string | null
+    distance: number
+    hasHit: boolean
+    hitFaceIndex: number
+    hitNormalWorld: number[]
+    hitPointWorld: number[]
+    op: 'event'
+    ray: {
+      collisionFilterGroup: number
+      collisionFilterMask: number
+      direction: number[]
+      from: number[]
+      to: number[]
+      uuid: string
+    }
+    rayFromWorld: number[]
+    rayToWorld: number[]
+    shape: (Omit<Shape, 'body'> & { body: string }) | null
+    shouldStop: boolean
+    type: 'rayhit'
+  }
+}
+export type WorkerCollideBeginEvent = {
+  data: {
+    bodyA: string
+    bodyB: string
+    op: 'event'
+    type: 'collideBegin'
+  }
+}
+export type WorkerCollideEndEvent = {
+  data: {
+    bodyA: string
+    bodyB: string
+    op: 'event'
+    type: 'collideEnd'
+  }
+}
+export type WorkerEventMessage =
+  | WorkerCollideBeginEvent
+  | WorkerCollideEndEvent
+  | WorkerCollideEvent
+  | WorkerRayhitEvent
 
-type WorldMessage<T extends WorldPropName> = Operation<SetOpName<T>, Required<ProviderProps[T]>>
+export type IncomingWorkerMessage = WorkerEventMessage | WorkerFrameMessage
 
-type CannonMessage =
-  | ApplyMessage
-  | AtomicMessage
-  | BodiesMessage
-  | ConstraintMessage
-  | ConstraintMotorMessage
-  | QuaternionMessage
-  | TopDownVehicleMessage
-  | KinematicCharacterControllerMessage
-  | PlatformControllerMessage
-  | RayMessage
-  | RotationMessage
-  | SleepMessage
-  | SpringMessage
-  | ContactMaterialMessage
-  | SubscriptionMessage
-  | VectorMessage
-  | WakeUpMessage
-  | WorldMessage<WorldPropName>
+export type WorldPropName = 'axisIndex' | 'broadphase' | 'gravity' | 'iterations' | 'tolerance'
 
-export interface CannonWorker extends Worker {
-  postMessage: (message: CannonMessage) => void
+export type StepProps = {
+  maxSubSteps?: number
+  stepSize: number
+  timeSinceLastCalled?: number
+}
+
+export type WorldProps = {
+  allowSleep: boolean
+  axisIndex: number
+  broadphase: Broadphase
+  defaultContactMaterial: ContactMaterialOptions
+  gravity: Duplet
+  iterations: number
+  normalIndex: number
+  quatNormalizeFast: boolean
+  quatNormalizeSkip: number
+  solver: Solver
+  tolerance: number
+}
+
+type WorldMessage<T extends WorldPropName> = Operation<SetOpName<T>, WorldProps[T]>
+
+export type CannonMessageMap = {
+  addBodies: WithUUIDs<'addBodies', SerializableBodyProps[]> & { type: BodyShapeType }
+  addConstraint: WithUUID<'addConstraint', AddConstraintProps> & { type: 'Hinge' | ConstraintTypes }
+  addContactMaterial: WithUUID<'addContactMaterial', AddContactMaterialProps>
+  addKinematicCharacterController: WithUUIDs<
+      'addKinematicCharacterController',
+      [
+        bodyUUID: string,
+        collisionMask: number,
+        accelerationTimeAirborne?: number,
+        accelerationTimeGrounded?: number,
+        moveSpeed?: number,
+        wallSlideSpeedMax?: number,
+        wallStickTime?: number,
+        wallJumpClimb?: Duplet,
+        wallJumpOff?: Duplet,
+        wallLeap?: Duplet,
+        timeToJumpApex?: number,
+        maxJumpHeight?: number,
+        minJumpHeight?: number,
+        velocityXSmoothing?: number,
+        velocityXMin?: number,
+        maxClimbAngle?: number,
+        maxDescendAngle?: number,
+        skinWidth?: number,
+        dstBetweenRays?: number,
+      ]
+      >
+  addPlatformController: WithUUIDs<
+      'addPlatformController',
+      [
+        bodyUUID: string,
+        passengerMask: number,
+        localWaypoints: Duplet[],
+        speed?: number,
+        skinWidth?: number,
+        dstBetweenRays?: number,
+      ]
+      >
+  addRay: WithUUID<'addRay', AddRayProps>
+  addSpring: WithUUID<'addSpring', [uuidA: string, uuidB: string, options: SpringOptns]>
+  addTopDownVehicle: WithUUIDs<
+      'addTopDownVehicle',
+      [
+        chassisBodyUUID: string,
+        wheelInfos: WheelInfoOptions[],
+      ]
+      >
+  applyForce: WithUUID<'applyForce', [force: Duplet, worldPoint: Duplet]>
+  applyImpulse: WithUUID<'applyImpulse', [impulse: Duplet, worldPoint: Duplet]>
+  applyLocalForce: WithUUID<'applyLocalForce', [force: Duplet, localPoint: Duplet]>
+  applyLocalImpulse: WithUUID<'applyLocalImpulse', [impulse: Duplet, localPoint: Duplet]>
+  applyTopDownVehicleEngineForce: WithUUID<
+    'applyTopDownVehicleEngineForce',
+    [value: number, wheelIndex: number]
+  >
+  applyTorque: WithUUID<'applyTorque', [torque: Duplet]>
+  disableConstraint: WithUUID<'disableConstraint'>
+  disableConstraintMotor: WithUUID<'disableConstraintMotor'>
+  enableConstraint: WithUUID<'enableConstraint'>
+  enableConstraintMotor: WithUUID<'enableConstraintMotor'>
+  init: Operation<'init', WorldProps>
+  removeBodies: WithUUIDs<'removeBodies'>
+  removeConstraint: WithUUID<'removeConstraint'>
+  removeContactMaterial: WithUUID<'removeContactMaterial'>
+  removeKinematicCharacterController: WithUUIDs<'removeKinematicCharacterController'>
+  removePlatformController: WithUUIDs<'removePlatformController'>
+  removeRay: WithUUID<'removeRay'>
+  removeSpring: WithUUID<'removeSpring'>
+  removeTopDownVehicle: WithUUIDs<'removeTopDownVehicle'>
+  setAllowSleep: AtomicMessage<'allowSleep'>
+  setAngle: WithUUID<SetOpName<'angle'>, number>
+  setAngularDamping: AtomicMessage<'angularDamping'>
+  setAngularFactor: VectorMessage
+  setAngularVelocity: VectorMessage
+  setAxisIndex: WorldMessage<'axisIndex'>
+  setBroadphase: WorldMessage<'broadphase'>
+  setCollisionFilterGroup: AtomicMessage<'collisionFilterGroup'>
+  setCollisionFilterMask: AtomicMessage<'collisionFilterMask'>
+  setCollisionResponse: AtomicMessage<'collisionResponse'>
+  setConstraintMotorMaxForce: WithUUID<'setConstraintMotorMaxForce', number>
+  setConstraintMotorSpeed: WithUUID<'setConstraintMotorSpeed', number>
+  setFixedRotation: AtomicMessage<'fixedRotation'>
+  setGravity: WorldMessage<'gravity'>
+  setIsTrigger: AtomicMessage<'isTrigger'>
+  setIterations: WorldMessage<'iterations'>
+  setKinematicCharacterControllerInput: WithUUID<'setKinematicCharacterControllerInput', [input: [x: number, y: number]]>
+  setKinematicCharacterControllerJump: WithUUID<'setKinematicCharacterControllerJump', [isDown: boolean]>
+  setLinearDamping: AtomicMessage<'linearDamping'>
+  setLinearFactor: VectorMessage
+  setMass: AtomicMessage<'mass'>
+  setMaterial: AtomicMessage<'material'>
+  setPosition: VectorMessage
+  setSleepSpeedLimit: AtomicMessage<'sleepSpeedLimit'>
+  setSleepTimeLimit: AtomicMessage<'sleepTimeLimit'>
+  setSpringDamping: WithUUID<'setSpringDamping', number>
+  setSpringRestLength: WithUUID<'setSpringRestLength', number>
+  setSpringStiffness: WithUUID<'setSpringStiffness', number>
+  setTolerance: WorldMessage<'tolerance'>
+  setTopDownVehicleBrake: WithUUID<'setTopDownVehicleBrake', [brake: number, wheelIndex: number]>
+  setTopDownVehicleSteeringValue: WithUUID<
+    'setTopDownVehicleSteeringValue',
+    [value: number, wheelIndex: number]
+  >
+  setUserData: AtomicMessage<'userData'>
+  setVelocity: VectorMessage
+  sleep: WithUUID<'sleep'>
+  step: Operation<'step', StepProps> & {
+    positions: Float32Array
+    quaternions: Float32Array
+  }
+  subscribe: WithUUID<'subscribe', SubscribeMessageProps>
+  unsubscribe: Operation<'unsubscribe', number>
+  wakeUp: WithUUID<'wakeUp'>
+}
+
+type OpName = keyof CannonMessageMap
+
+export type CannonMessageBody<T extends OpName> = Omit<CannonMessageMap[T], 'op'>
+
+type CannonMessage = CannonMessageMap[OpName]
+export interface CannonWebWorker extends Worker {
+  onmessage: (e: IncomingWorkerMessage) => void
+  postMessage(message: CannonMessage, transfer: Transferable[]): void
+  postMessage(message: CannonMessage, options?: StructuredSerializeOptions): void
+  terminate: () => void
 }
 
 export type ProviderContext = {
   bodies: MutableRefObject<{ [uuid: string]: number }>
-  buffers: Buffers
   events: CannonEvents
   refs: Refs
   subscriptions: Subscriptions

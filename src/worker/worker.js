@@ -26,76 +26,36 @@ function syncBodies() {
   state.bodies = state.world.bodies.reduce((acc, body) => ({ ...acc, [body.uuid]: body }), {})
 }
 
-function emitBeginContact({ bodyA, bodyB, contactEquations }) {
+function emitBeginContact({ bodyA, bodyB }) {
   if (!bodyA || !bodyB) return
-  self.postMessage({
-    bodyA: bodyA.uuid,
-    bodyB: bodyB.uuid,
-    collisionFilters: {
-      bodyFilterGroup: bodyA.collisionGroup,
-      bodyFilterMask: bodyA.collisionMask,
-      targetFilterGroup: bodyB.collisionGroup,
-      targetFilterMask: bodyB.collisionMask,
-    },
-    contacts: contactEquations.map((contactEquation) => {
-      const { normalA, contactPointA, contactPointB, index, ...c } = contactEquation
-      const contactPoint = []
-      const contactPoint2 = []
-      vec2.add(contactPoint, c.bodyA.position, contactPointA)
-      vec2.add(contactPoint2, c.bodyB.position, contactPointA)
-      const contactNormal = normalA //bodyA === body ? normalA : vec2.scale(normalA, normalA, -1)
-      return {
-        bi: bodyA.uuid,
-        bj: bodyB.uuid,
-        // World position of the contact
-        // Normal of the contact, relative to the colliding body
-        contactNormal: contactNormal,
-        contactPoint: contactPoint,
-        contactPoint2: contactPoint2,
-        impactVelocity: contactEquation.getVelocityAlongNormal(),
-        index,
-        ni: normalA,
-        ri: contactPointA,
-        rj: contactPointB,
-      }
-    }),
-    op: 'event',
-    target: bodyB.uuid,
-    type: 'collideBegin',
-  })
+  self.postMessage({ bodyA: bodyA.uuid, bodyB: bodyB.uuid, op: 'event', type: 'collideBegin' })
 }
 
 function emitEndContact({ bodyA, bodyB }) {
   if (!bodyA || !bodyB) return
-  self.postMessage({
-    bodyA: bodyA.uuid,
-    bodyB: bodyB.uuid,
-    op: 'event',
-    type: 'collideEnd',
-  })
+  self.postMessage({ bodyA: bodyA.uuid, bodyB: bodyB.uuid, op: 'event', type: 'collideEnd' })
 }
 
+const broadphases = { NaiveBroadphase, SAPBroadphase }
 const createMaterial = createMaterialFactory(state.materials)
 
 const _normal = [0, 0, 0]
 
-self.onmessage = (e) => {
-  const { op, uuid, type, positions, quaternions, props } = e.data
-  const broadphases = { NaiveBroadphase, SAPBroadphase }
+self.onmessage = ({ data: { op, positions, props, quaternions, type, uuid } }) => {
   switch (op) {
     case 'init': {
       const {
-        gravity,
-        tolerance,
-        step,
-        iterations,
         allowSleep,
-        broadphase,
         axisIndex,
-        normalIndex,
+        broadphase,
         defaultContactMaterial,
+        gravity,
+        iterations,
+        normalIndex,
         quatNormalizeFast,
         quatNormalizeSkip,
+        //solver,
+        tolerance,
       } = props
       state.world.allowSleep = allowSleep
       state.world.gravity = [gravity[0], gravity[1]]
@@ -103,6 +63,10 @@ self.onmessage = (e) => {
       state.world.quatNormalizeSkip = quatNormalizeSkip
       state.world.normalIndex = normalIndex
       _normal.splice(normalIndex, 1, 1)
+
+      /*if (solver === 'Split') {
+        state.world.solver = new SplitSolver(new GSSolver())
+      }*/
 
       state.world.on('impact', (event) => {
         const { bodyA, bodyB, contactEquation } = event
@@ -133,7 +97,7 @@ self.onmessage = (e) => {
           },
           op: 'event',
           target: bodyB.uuid,
-          type: event.type,
+          type: 'collide', //event.type
         })
       })
 
@@ -144,21 +108,10 @@ self.onmessage = (e) => {
       state.world.on('beginContact', emitBeginContact)
       state.world.on('endContact', emitEndContact)
       Object.assign(state.world.defaultContactMaterial, defaultContactMaterial)
-      state.config.step = step
       break
     }
     case 'step': {
-      const now = performance.now() / 1000
-      if (!state.lastCallTime) {
-        state.world.step(state.config.step)
-      } else {
-        const timeSinceLastCall = now - state.lastCallTime
-        // since we fire step message from useFrame loop
-        // p2 simulates what happened while tab in background when we come back
-        // what looks quite odd. Not sure if we need timeSinceLastCall here? Need to figure out
-        state.world.step(state.config.step, timeSinceLastCall)
-      }
-      state.lastCallTime = now
+      state.world.step(props.stepSize, props.timeSinceLastCalled, props.maxSubSteps)
 
       const numberOfBodies = state.world.bodies.length
       for (let i = 0; i < numberOfBodies; i++) {
@@ -175,7 +128,6 @@ self.onmessage = (e) => {
         quaternions[4 * i + 2] = s * -_normal[2]
         quaternions[4 * i + 3] = -Math.cos(b.angle * 0.5)
       }
-
       const observations = []
       for (const id of Object.keys(state.subscriptions)) {
         let [uuid, type, target = 'bodies'] = state.subscriptions[id]
@@ -200,14 +152,45 @@ self.onmessage = (e) => {
     }
     case 'addBodies': {
       for (let i = 0; i < uuid.length; i++) {
-        const bodyProps = props[i]
         const body = propsToBody({
           createMaterial,
-          props: bodyProps,
+          props: props[i],
           type,
           uuid: uuid[i],
         })
         state.world.addBody(body)
+        /*in p2 there is only an impact emitted by the world which we use*/
+        /*if (props[i].onCollide)
+          body.on('impact', ({ type, body, target, contact }) => {
+            const { ni, ri, rj, bi, bj, id } = contact
+            const contactPoint = bi.position.vadd(ri)
+            const contactNormal = bi === body ? ni : ni.scale(-1)
+            self.postMessage({
+              body: body.uuid,
+              collisionFilters: {
+                bodyFilterGroup: body.collisionFilterGroup,
+                bodyFilterMask: body.collisionFilterMask,
+                targetFilterGroup: target.collisionFilterGroup,
+                targetFilterMask: target.collisionFilterMask,
+              },
+              contact: {
+                bi: bi.uuid,
+                bj: bj.uuid,
+                // Normal of the contact, relative to the colliding body
+                contactNormal: contactNormal.toArray(),
+                // World position of the contact
+                contactPoint: contactPoint.toArray(),
+                id,
+                impactVelocity: contact.getImpactVelocityAlongNormal(),
+                ni: ni.toArray(),
+                ri: ri.toArray(),
+                rj: rj.toArray(),
+              },
+              op: 'event',
+              target: target.uuid,
+              type,
+            })
+          })*/
       }
       syncBodies()
       break
@@ -218,7 +201,7 @@ self.onmessage = (e) => {
       break
     }
     case 'subscribe': {
-      const { id, type, target } = props
+      const { id, target, type } = props
       state.subscriptions[id] = [uuid, type, target]
       break
     }
@@ -229,11 +212,8 @@ self.onmessage = (e) => {
     case 'setPosition':
       vec2.set(state.bodies[uuid].position, props[0], props[1])
       break
-    case 'setQuaternion':
-      state.bodies[uuid].quaternion.set(props[0], props[1], props[2], props[3])
-      break
     case 'setAngle':
-      state.bodies[uuid].angle = props[0]
+      state.bodies[uuid].angle = props
       break
     case 'setVelocity':
       state.bodies[uuid].velocity = [props[0], props[1]]
@@ -291,9 +271,6 @@ self.onmessage = (e) => {
       break
     case 'setTolerance':
       state.world.solver.tolerance = props
-      break
-    case 'setStep':
-      state.config.step = props
       break
     case 'setIterations':
       state.world.solver.iterations = props
@@ -388,7 +365,7 @@ self.onmessage = (e) => {
 
     case 'addSpring': {
       const [bodyA, bodyB, optns] = props
-      let { worldAnchorA, worldAnchorB, localAnchorA, localAnchorB, restLength, stiffness, damping } = optns
+      let { damping, localAnchorA, localAnchorB, restLength, stiffness, worldAnchorA, worldAnchorB } = optns
 
       worldAnchorA = Array.isArray(worldAnchorA) ? vec2.fromValues(...worldAnchorA) : undefined
       worldAnchorB = Array.isArray(worldAnchorB) ? vec2.fromValues(...worldAnchorB) : undefined

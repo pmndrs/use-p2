@@ -51,9 +51,9 @@ export default ({ position }: PropsWithChildren<{ position: [x: number, y: numbe
     position,
     angle: Math.PI / 2,
     fixedRotation: true,
-    onCollideBegin: (e) => {
+    onCollide: (e) => {
       // @ts-ignore
-      const normal = e.contacts[0].contactNormal
+      const normal = e.contact.contactNormal
       vec2.scale(normal, normal, -0.3)
       playerApi.applyImpulse(normal, [0, 0])
     },

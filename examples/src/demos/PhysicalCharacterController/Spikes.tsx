@@ -41,11 +41,11 @@ export default ({ position }: PropsWithChildren<{ position: [x: number, y: numbe
     args: [1.8, 1.2],
     collisionResponse: 0,
     position: [position[0], position[1] + 0.2],
-    onCollideBegin: (e) => {
+    onCollide: (e) => {
       if (e.body.name === 'player') {
         loseLife()
         // @ts-ignore
-        setFeathers((f) => [...f, ...new Array(10).fill(e.contacts[0].contactPoint)])
+        setFeathers((f) => [...f, ...new Array(10).fill(e.contact.contactPoint)])
       }
     },
   }))
