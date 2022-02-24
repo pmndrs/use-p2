@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import type { BufferGeometry, Material } from 'three'
 import type { GLTF } from 'three-stdlib/loaders/GLTFLoader'
 
-import { useControls } from '../hooks'
+import { useControls } from '../use-controls'
 
 const materials = ['Black', 'White', 'Yellow'] as const
 type PlayerMaterial = typeof materials[number]

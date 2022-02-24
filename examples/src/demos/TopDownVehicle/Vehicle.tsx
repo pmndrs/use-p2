@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import type { Object3D } from 'three'
 import * as THREE from 'three'
 
-import { useControls } from '../hooks'
+import { useControls } from '../use-controls'
 import Chassis from './Chassis'
 import Stroke from './Stroke'
 

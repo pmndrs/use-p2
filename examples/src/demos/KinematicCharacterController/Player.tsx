@@ -6,7 +6,7 @@ import type { Object3D } from 'three'
 import type { LineSegments } from 'three'
 import * as THREE from 'three'
 
-import { useControls } from '../hooks'
+import { useControls } from '../use-controls'
 import { PLAYER_GROUP, SCENERY_GROUP } from './'
 
 /**
