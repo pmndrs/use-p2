@@ -1,4 +1,4 @@
-import type { Body, Capsule, Circle, Line, Shape as ShapeType } from 'p2-es'
+import type { Body, Capsule, Circle, Line, Shape as ShapeType, World } from 'p2-es'
 import { Shape, vec2 } from 'p2-es'
 import type { Scene } from 'three'
 import { Mesh } from 'three'
@@ -17,20 +17,22 @@ export type DebugOptions = {
   scale?: number
 }
 
-export default function cannonDebugger(
+export default function CannonDebugger(
   scene: Scene,
-  bodies: Body[],
+  world: World,
   {
-    normalIndex = 0,
     color = 0xffffff,
     linewidth = 0.002,
-    scale = 1,
+    normalIndex = 0,
     onInit,
     onUpdate,
-    autoUpdate,
+    scale = 1,
   }: DebugOptions = {},
 ) {
   const _meshes: Mesh[] = []
+  const _tempVec0 = vec2.create()
+  const _tempVec1 = vec2.create()
+  const _tempVec2 = [0,0] as [x: number, y: number]
   const _lineMaterial = new LineMaterial({
     color,
     depthTest: false,
@@ -206,20 +208,21 @@ export default function cannonDebugger(
       if (mesh) scene.remove(mesh)
       _meshes[index] = mesh = createMesh(shape)
       didCreateNewMesh = true
-      scaleMesh(mesh, shape)
     }
 
+    scaleMesh(mesh, shape)
     return didCreateNewMesh
   }
 
   function update(): void {
     const meshes = _meshes
-    const shapeOffset = vec2.create()
-    let shapeWorldPosition = vec2.create()
+    const shapeOffset = _tempVec0
+    const shapeWorldPosition = _tempVec1
+    const shape3position = _tempVec2
 
     let meshIndex = 0
 
-    for (const body of bodies) {
+    for (const body of world.bodies) {
       for (let i = 0; i !== body.shapes.length; i++) {
         const shape = body.shapes[i]
         const didCreateNewMesh = updateMesh(meshIndex, shape)
@@ -231,10 +234,10 @@ export default function cannonDebugger(
           vec2.add(shapeWorldPosition, body.position, shapeOffset)
 
           // Copy to meshes
-          shapeWorldPosition = [...shapeWorldPosition]
-          shapeWorldPosition.splice(normalIndex, 0, 0)
+          vec2.copy(shape3position, shapeWorldPosition)
+          shape3position.splice(normalIndex, 0, 0)
           // @ts-ignore
-          mesh.position.set(...shapeWorldPosition)
+          mesh.position.set(...shape3position)
 
           // TODO: there is an issue with angle to quaternion conversion if normalIndex is 1
 
@@ -255,9 +258,7 @@ export default function cannonDebugger(
     }
 
     meshes.length = meshIndex
-    if (autoUpdate !== false) requestAnimationFrame(update)
   }
 
-  if (autoUpdate !== false) requestAnimationFrame(update)
   return { update }
 }

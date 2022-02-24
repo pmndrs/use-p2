@@ -1,27 +1,21 @@
 import { useFrame } from '@react-three/fiber'
 import type { Body } from 'p2-es'
-import { vec2 } from 'p2-es'
+import {vec2, World} from 'p2-es'
 import type { FC } from 'react'
 import React, { useContext, useMemo, useRef, useState } from 'react'
 import { Euler, Quaternion, Scene, Vector3 } from 'three'
 
 import type { BodyProps, BodyShapeType } from './hooks'
 import type { DebugOptions } from './p2-debugger'
-import cannonDebugger from './p2-debugger'
+import CannonDebugger from './p2-debugger'
 import propsToBody from './propsToBody'
 import { context, debugContext } from './setup'
-
-type DebugApi = {
-  update: () => void
-}
-
-export type DebuggerInterface = (scene: Scene, bodies: Body[], props?: DebugOptions) => DebugApi
 
 type DebugInfo = { bodies: Body[]; bodyMap: { [uuid: string]: Body } }
 
 export type DebugProps = {
   color?: number
-  impl?: DebuggerInterface
+  impl?: typeof CannonDebugger
   linewidth?: number
   normalIndex: number
   scale?: number
@@ -38,12 +32,12 @@ export const Debug: FC<DebugProps> = ({
   normalIndex = 0,
   linewidth = 0.002,
   scale = 1,
-  impl = cannonDebugger,
+  impl = CannonDebugger,
 }) => {
   const [{ bodies, bodyMap }] = useState<DebugInfo>({ bodies: [], bodyMap: {} })
   const { refs } = useContext(context)
   const [scene] = useState(() => new Scene())
-  const p2DebuggerRef = useRef<DebugApi>(impl(scene, bodies, { color, linewidth, normalIndex, scale }))
+  const p2DebuggerRef = useRef(impl(scene, { bodies } as World, { color, linewidth, normalIndex, scale }))
 
   const euler = new Euler()
   const order = ['XYZ', 'YZX', 'ZXY']
