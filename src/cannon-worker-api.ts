@@ -1,4 +1,5 @@
 import EventEmitter from 'events'
+import Worker from 'web-worker:./worker/index.ts'
 
 import type {
   Broadphase,
@@ -8,18 +9,16 @@ import type {
   IncomingWorkerMessage,
   StepProps,
   WorldProps,
-} from '../setup'
-// @ts-expect-error Types are not setup for this yet
-import Worker from './worker'
+} from './setup'
 
 export type CannonWorkerProps = Partial<WorldProps> & { size?: number }
 
-export class CannonWorker extends EventEmitter {
-  get axisIndex(): number {
+export class CannonWorkerAPI extends EventEmitter {
+  get axisIndex(): 0 | 1 | 2 {
     return this.config.axisIndex
   }
 
-  set axisIndex(value: number) {
+  set axisIndex(value: 0 | 1 | 2) {
     this.config.axisIndex = value
     this.worker.postMessage({ op: 'setAxisIndex', props: value })
   }
@@ -256,16 +255,8 @@ export class CannonWorker extends EventEmitter {
     this.worker.postMessage({ op: 'applyTorque', props, uuid })
   }
 
-  disableConstraint({ uuid }: CannonMessageBody<'disableConstraint'>): void {
-    this.worker.postMessage({ op: 'disableConstraint', uuid })
-  }
-
   disableConstraintMotor({ uuid }: CannonMessageBody<'disableConstraintMotor'>): void {
     this.worker.postMessage({ op: 'disableConstraintMotor', uuid })
-  }
-
-  enableConstraint({ uuid }: CannonMessageBody<'enableConstraint'>): void {
-    this.worker.postMessage({ op: 'enableConstraint', uuid })
   }
 
   enableConstraintMotor({ uuid }: CannonMessageBody<'enableConstraintMotor'>): void {
@@ -351,10 +342,6 @@ export class CannonWorker extends EventEmitter {
     this.worker.postMessage({ op: 'setAngularDamping', props, uuid })
   }
 
-  setAngularFactor({ props, uuid }: CannonMessageBody<'setAngularFactor'>): void {
-    this.worker.postMessage({ op: 'setAngularFactor', props, uuid })
-  }
-
   setAngularVelocity({ props, uuid }: CannonMessageBody<'setAngularVelocity'>): void {
     this.worker.postMessage({ op: 'setAngularVelocity', props, uuid })
   }
@@ -369,10 +356,6 @@ export class CannonWorker extends EventEmitter {
 
   setCollisionResponse({ props, uuid }: CannonMessageBody<'setCollisionResponse'>): void {
     this.worker.postMessage({ op: 'setCollisionResponse', props, uuid })
-  }
-
-  setConstraintMotorMaxForce({ props, uuid }: CannonMessageBody<'setConstraintMotorMaxForce'>): void {
-    this.worker.postMessage({ op: 'setConstraintMotorMaxForce', props, uuid })
   }
 
   setConstraintMotorSpeed({ props, uuid }: CannonMessageBody<'setConstraintMotorSpeed'>): void {
@@ -405,10 +388,6 @@ export class CannonWorker extends EventEmitter {
     this.worker.postMessage({ op: 'setLinearDamping', props, uuid })
   }
 
-  setLinearFactor({ props, uuid }: CannonMessageBody<'setLinearFactor'>): void {
-    this.worker.postMessage({ op: 'setLinearFactor', props, uuid })
-  }
-
   setMass({ props, uuid }: CannonMessageBody<'setMass'>): void {
     this.worker.postMessage({ op: 'setMass', props, uuid })
   }
@@ -419,18 +398,6 @@ export class CannonWorker extends EventEmitter {
 
   setPosition({ props, uuid }: CannonMessageBody<'setPosition'>): void {
     this.worker.postMessage({ op: 'setPosition', props, uuid })
-  }
-
-  setTopDownVehicleBrake({ props, uuid }: CannonMessageBody<'setTopDownVehicleBrake'>): void {
-    this.worker.postMessage({ op: 'setTopDownVehicleBrake', props, uuid })
-  }
-
-  setTopDownVehicleSteeringValue({ props, uuid }: CannonMessageBody<'setTopDownVehicleSteeringValue'>): void {
-    this.worker.postMessage({
-      op: 'setTopDownVehicleSteeringValue',
-      props,
-      uuid,
-    })
   }
 
   setSleepSpeedLimit({ props, uuid }: CannonMessageBody<'setSleepSpeedLimit'>): void {
@@ -451,6 +418,18 @@ export class CannonWorker extends EventEmitter {
 
   setSpringStiffness({ props, uuid }: CannonMessageBody<'setSpringStiffness'>): void {
     this.worker.postMessage({ op: 'setSpringStiffness', props, uuid })
+  }
+
+  setTopDownVehicleBrake({ props, uuid }: CannonMessageBody<'setTopDownVehicleBrake'>): void {
+    this.worker.postMessage({ op: 'setTopDownVehicleBrake', props, uuid })
+  }
+
+  setTopDownVehicleSteeringValue({ props, uuid }: CannonMessageBody<'setTopDownVehicleSteeringValue'>): void {
+    this.worker.postMessage({
+      op: 'setTopDownVehicleSteeringValue',
+      props,
+      uuid,
+    })
   }
 
   setUserData({ props, uuid }: CannonMessageBody<'setUserData'>): void {

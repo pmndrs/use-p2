@@ -2,9 +2,9 @@ import { useEffect } from 'react'
 
 import type { ProviderProps } from './Provider'
 import type { WorldPropName } from './setup'
-import type { CannonWorker } from './worker/cannon-worker'
+import type { CannonWorkerAPI } from './cannon-worker-api'
 
-type Props = Pick<Required<ProviderProps>, WorldPropName> & { worker: CannonWorker }
+type Props = Pick<Required<ProviderProps>, WorldPropName> & { worker: CannonWorkerAPI }
 
 export function useUpdateWorldPropsEffect({
   axisIndex,

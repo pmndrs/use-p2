@@ -29,23 +29,24 @@ import type {
   WheelInfoOptions,
 } from './setup'
 import { context, debugContext } from './setup'
-import type { CannonWorker } from './worker/cannon-worker'
+import type { CannonWorkerAPI } from './cannon-worker-api'
 
 export type AtomicProps = {
   allowSleep: boolean
   angle: number
   angularDamping: number
+  angularVelocity: number
   collisionFilterGroup: number
   collisionFilterMask: number
-  collisionResponse: number
+  collisionResponse: boolean
   fixedRotation: boolean
   isTrigger: boolean
   linearDamping: number
   mass: number
-  material: ContactMaterialOptions
+  material: MaterialOptions
   sleepSpeedLimit: number
   sleepTimeLimit: number
-  userData: {}
+  userData: Record<PropertyKey, any>
 }
 
 export type VectorProps = Record<VectorName, Duplet>
@@ -146,7 +147,7 @@ let incrementingId = 0
 
 function subscribe<T extends SubscriptionName>(
   ref: RefObject<Object3D>,
-  worker: CannonWorker,
+  worker: CannonWorkerAPI,
   subscriptions: ProviderContext['subscriptions'],
   type: T,
   index?: number,
@@ -292,8 +293,7 @@ function useBody<B extends BodyProps<unknown[]>>(
         allowSleep: makeAtomic('allowSleep', index),
         angle: makeAtomic('angle', index),
         angularDamping: makeAtomic('angularDamping', index),
-        angularFactor: makeVec('angularFactor', index),
-        angularVelocity: makeVec('angularVelocity', index),
+        angularVelocity: makeAtomic('angularVelocity', index),
         applyForce(force: Duplet, worldPoint: Duplet) {
           const uuid = getUUID(ref, index)
           uuid && worker.applyForce({ props: [force, worldPoint], uuid })
@@ -320,7 +320,6 @@ function useBody<B extends BodyProps<unknown[]>>(
         fixedRotation: makeAtomic('fixedRotation', index),
         isTrigger: makeAtomic('isTrigger', index),
         linearDamping: makeAtomic('linearDamping', index),
-        linearFactor: makeVec('linearFactor', index),
         mass: makeAtomic('mass', index),
         material: makeAtomic('material', index),
         position: makeVec('position', index),
@@ -405,7 +404,7 @@ type ConstraintApi = [
   },
 ]
 
-type HingeConstraintApi = [
+type MotorConstraintApi = [
   RefObject<Object3D>,
   RefObject<Object3D>,
   {
@@ -428,15 +427,15 @@ type SpringApi = [
   },
 ]
 
-type ConstraintORHingeApi<T extends 'Hinge' | ConstraintTypes> = T extends ConstraintTypes
+type ConstraintORHingeApi<T extends 'Prismatic' | 'Revolute' | ConstraintTypes> = T extends ConstraintTypes
   ? ConstraintApi
-  : HingeConstraintApi
+  : MotorConstraintApi
 
-function useConstraint<T extends 'Hinge' | ConstraintTypes>(
+function useConstraint<T extends 'Prismatic' | 'Revolute' | ConstraintTypes>(
   type: T,
   bodyA: Ref<Object3D>,
   bodyB: Ref<Object3D>,
-  optns: ConstraintOptns, // | HingeConstraintOpts = {},
+  optns: ConstraintOptns | PrismaticConstraintOpts | RevoluteConstraintOpts = {},
   deps: DependencyList = [],
 ): ConstraintORHingeApi<T> {
   const { worker } = useContext(context)
@@ -457,22 +456,15 @@ function useConstraint<T extends 'Hinge' | ConstraintTypes>(
   }, deps)
 
   const api = useMemo(() => {
-    const enableDisable = {
-      disable: () => worker.disableConstraint({ uuid }),
-      enable: () => worker.enableConstraint({ uuid }),
-    }
-
-    if (type === 'Hinge') {
+    if (type === 'Prismatic' || type === 'Revolute') {
       return {
-        ...enableDisable,
         disableMotor: () => worker.disableConstraintMotor({ uuid }),
         enableMotor: () => worker.enableConstraintMotor({ uuid }),
-        setMotorMaxForce: (value: number) => worker.setConstraintMotorMaxForce({ props: value, uuid }),
         setMotorSpeed: (value: number) => worker.setConstraintMotorSpeed({ props: value, uuid }),
       }
     }
 
-    return enableDisable
+    return {}
   }, deps)
 
   return [refA, refB, api] as ConstraintORHingeApi<T>
@@ -628,7 +620,7 @@ export function useTopDownVehicle(
     }
 
     const currentWorker = worker
-    const uuid: string[] = [ref.current.uuid]
+    const uuid: string = ref.current.uuid
     const { chassisBody, wheels } = fn()
 
     const chassisBodyUUID = getUUID(chassisBody)
@@ -744,7 +736,7 @@ export function useKinematicCharacterController(
     }
 
     const currentWorker = worker
-    const uuid: string[] = [ref.current.uuid]
+    const uuid: string = ref.current.uuid
     const kinematicCharacterControllerProps = fn()
 
     const bodyUUID = getUUID(kinematicCharacterControllerProps.body)
@@ -772,7 +764,6 @@ export function useKinematicCharacterController(
         kinematicCharacterControllerProps.skinWidth,
         kinematicCharacterControllerProps.dstBetweenRays,
       ],
-      //type: undefined,
       uuid,
     })
     return () => {
@@ -790,11 +781,11 @@ export function useKinematicCharacterController(
       },
       setInput(input: [x: number, y: number]) {
         const uuid = getUUID(ref)
-        uuid && worker.setKinematicCharacterControllerInput({ props: [input], uuid })
+        uuid && worker.setKinematicCharacterControllerInput({ props: input, uuid })
       },
       setJump(isDown: boolean) {
         const uuid = getUUID(ref)
-        uuid && worker.setKinematicCharacterControllerJump({ props: [isDown], uuid })
+        uuid && worker.setKinematicCharacterControllerJump({ props: isDown, uuid })
       },
     }
   }, deps)
@@ -835,7 +826,7 @@ export function usePlatformController(
     }
 
     const currentWorker = worker
-    const uuid: string[] = [ref.current.uuid]
+    const uuid: string = ref.current.uuid
     const platformControllerProps = fn()
 
     const bodyUUID = getUUID(platformControllerProps.body)
@@ -850,7 +841,6 @@ export function usePlatformController(
         platformControllerProps.skinWidth,
         platformControllerProps.dstBetweenRays,
       ],
-      //type: undefined,
       uuid,
     })
     return () => {

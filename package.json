@@ -24,10 +24,14 @@
     "eslint": "eslint .",
     "eslint-fix": "eslint --fix .",
     "prebuild": "tsc",
+    "prepare": "husky install",
     "prettier": "prettier --list-different .",
     "prettier-fix": "prettier --write .",
-    "test": "echo tests are missing",
-    "prepare": "husky install"
+    "test": "echo tests are missing"
+  },
+  "dependencies": {
+    "events": "^3.3.0",
+    "p2-es": "^0.7.3"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
@@ -51,7 +55,6 @@
     "eslint-plugin-typescript-enum": "^2.1.0",
     "husky": "^7.0.4",
     "lint-staged": "^12.3.2",
-    "p2-es": "^0.7.3",
     "prettier": "^2.5.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -67,8 +70,5 @@
   "peerDependencies": {
     "react": ">=17.0",
     "react-dom": ">=17.0"
-  },
-  "dependencies": {
-    "events": "^3.3.0"
   }
 }

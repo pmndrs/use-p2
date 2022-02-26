@@ -20,19 +20,12 @@ export type DebugOptions = {
 export default function CannonDebugger(
   scene: Scene,
   world: World,
-  {
-    color = 0xffffff,
-    linewidth = 0.002,
-    normalIndex = 0,
-    onInit,
-    onUpdate,
-    scale = 1,
-  }: DebugOptions = {},
+  { color = 0xffffff, linewidth = 0.002, normalIndex = 0, onInit, onUpdate, scale = 1 }: DebugOptions = {},
 ) {
   const _meshes: Mesh[] = []
   const _tempVec0 = vec2.create()
   const _tempVec1 = vec2.create()
-  const _tempVec2 = [0,0] as [x: number, y: number]
+  const _tempVec2 = [0, 0] as [x: number, y: number]
   const _lineMaterial = new LineMaterial({
     color,
     depthTest: false,

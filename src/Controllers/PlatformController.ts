@@ -23,7 +23,7 @@ function clamp(value: number, min: number, max: number) {
 const ZERO = vec2.create()
 
 interface PlatformControllerOptns extends RaycastControllerOptns {
-  controllers: { [key: string]: KinematicCharacterController }
+  controllers: { [uuid: string]: { controller: KinematicCharacterController } }
   dstBetweenRays?: number
   localWaypoints: Duplet[]
   passengerMask: number
@@ -97,8 +97,9 @@ export default class PlatformController extends RaycastController {
     }
 
     Object.values(options.controllers).map((c) => {
-      const body = c.body as BodyWithUuid
-      if (c.constructor.name === 'KinematicCharacterController') this.passengerDictionary[body.uuid] = c
+      const body = c.controller.body as unknown as BodyWithUuid
+      if (c.controller.constructor.name === 'KinematicCharacterController')
+        this.passengerDictionary[body.uuid] = c.controller
     })
 
     this.world.on('postStep', () => this.update(1 / 60))
@@ -305,7 +306,7 @@ export default class PlatformController extends RaycastController {
   movePassengers(beforeMovePlatform: boolean) {
     this.passengerMovement.map((passenger) => {
       if (!(passenger.uuid in this.passengerDictionary)) {
-        console.error('passenger uuid not in passengerDictionary')
+        return console.error('passenger uuid not in passengerDictionary')
       }
 
       if (passenger.moveBeforePlatform === beforeMovePlatform) {

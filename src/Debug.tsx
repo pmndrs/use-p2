@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import type { Body } from 'p2-es'
-import {vec2, World} from 'p2-es'
+import { vec2, World } from 'p2-es'
 import type { FC } from 'react'
 import React, { useContext, useMemo, useRef, useState } from 'react'
 import { Euler, Quaternion, Scene, Vector3 } from 'three'

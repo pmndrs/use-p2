@@ -1,29 +1,27 @@
-import type { World } from 'p2-es'
 import { ContactMaterial } from 'p2-es'
 
 import type { CannonMessageBody } from '../setup'
 import type { CreateMaterial } from './material'
-
-type WithUUID<C> = C & { uuid: string }
-type DecoratedWorld = Omit<World, 'contactmaterials'> & { contactmaterials: WithUUID<ContactMaterial>[] }
+import type { State } from './state'
+import type { WithUUID } from './types'
 
 export const addContactMaterial = (
-  world: World,
+  world: State['world'],
   createMaterial: CreateMaterial,
   [materialA, materialB, options]: CannonMessageBody<'addContactMaterial'>['props'],
   uuid: string,
 ) => {
   const matA = createMaterial(materialA)
   const matB = createMaterial(materialB)
-  const contactMaterial = new ContactMaterial(matA, matB, options) as WithUUID<ContactMaterial>
+  const contactMaterial: WithUUID<ContactMaterial> = new ContactMaterial(matA, matB, options)
   contactMaterial.uuid = uuid
   world.addContactMaterial(contactMaterial)
 }
 
-export const removeContactMaterial = (world: DecoratedWorld, cmUUID: string) => {
-  const index = world.contactmaterials.findIndex(({ uuid }) => uuid === cmUUID)
+export const removeContactMaterial = (world: State['world'], cmUUID: string) => {
+  const index = world.contactMaterials.findIndex(({ uuid }) => uuid === cmUUID)
   //const [{ id: i }, { id: j }] = world.contactmaterials[index].materials
 
-  world.contactmaterials.splice(index, 1)
+  world.contactMaterials.splice(index, 1)
   //delete world.contactMaterialTable.data[i < j ? `${i}-${j}` : `${j}-${i}`]
 }

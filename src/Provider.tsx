@@ -17,8 +17,8 @@ import type {
 } from './setup'
 import { context } from './setup'
 import { useUpdateWorldPropsEffect } from './useUpdateWorldPropsEffect'
-import type { CannonWorkerProps } from './worker/cannon-worker'
-import { CannonWorker } from './worker/cannon-worker'
+import type { CannonWorkerProps } from './cannon-worker-api'
+import { CannonWorkerAPI } from './cannon-worker-api'
 
 export type ProviderProps = PropsWithChildren<
   CannonWorkerProps & {
@@ -71,9 +71,9 @@ export const Provider: FC<ProviderProps> = ({
 }) => {
   const { invalidate } = useThree()
 
-  const [worker] = useState<CannonWorker>(
+  const [worker] = useState<CannonWorkerAPI>(
     () =>
-      new CannonWorker({
+      new CannonWorkerAPI({
         allowSleep,
         axisIndex,
         broadphase,

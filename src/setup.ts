@@ -2,12 +2,11 @@ import type { ContactMaterialOptions, MaterialOptions, RayOptions as RayOptionsI
 import type { MutableRefObject } from 'react'
 import { createContext } from 'react'
 import type { Object3D } from 'three'
-import type { CannonWorker } from 'worker/cannon-worker'
+import type { CannonWorkerAPI } from 'cannon-worker-api'
 
 import type { AtomicProps, BodyProps, BodyShapeType } from './hooks'
 
-export type Duplet = [x: number, y: number]
-export type Quad = [x: number, y: number, z: number, w: number]
+export type Duplet = [number, number]
 
 export type Broadphase = 'Naive' | 'SAP'
 export type Solver = 'GS' | 'Split'
@@ -116,6 +115,7 @@ export const atomicNames = [
   'allowSleep',
   'angle',
   'angularDamping',
+  'angularVelocity',
   'collisionFilterGroup',
   'collisionFilterMask',
   'collisionResponse',
@@ -130,13 +130,7 @@ export const atomicNames = [
 ] as const
 export type AtomicName = typeof atomicNames[number]
 
-export const vectorNames = [
-  'angularFactor',
-  'angularVelocity',
-  'linearFactor',
-  'position',
-  'velocity',
-] as const
+export const vectorNames = ['position', 'velocity'] as const
 export type VectorName = typeof vectorNames[number]
 
 export const subscriptionNames = [...atomicNames, ...vectorNames, 'collisions', 'raysData'] as const
@@ -144,13 +138,34 @@ export type SubscriptionName = typeof subscriptionNames[number]
 
 export type SetOpName<T extends AtomicName | VectorName | WorldPropName> = `set${Capitalize<T>}`
 
-type NoProps = symbol
+type Operation<T extends OpName, P> = { op: T } & (P extends symbol ? {} : { props: P })
 
-type Operation<T extends OpName, P> = { op: T } & (P extends NoProps ? {} : { props: P })
-type WithUUID<T extends OpName, P = NoProps> = Operation<T, P> & { uuid: string }
-type WithUUIDs<T extends OpName, P = NoProps> = Operation<T, P> & { uuid: string[] }
+type WithUUID<T extends OpName, P = symbol> = Operation<T, P> & { uuid: string }
+type WithUUIDs<T extends OpName, P = symbol> = Operation<T, P> & { uuid: string[] }
 
-type AddConstraintProps = [uuidA: string, uuidB: string, options: {}]
+type AddConstraintProps = [
+  uuidA: string,
+  uuidB: string,
+  options: {
+    angle?: number
+    collideConnected?: boolean
+    disableRotationalLock?: boolean
+    distance?: number
+    localAnchorA?: Duplet
+    localAnchorB?: Duplet
+    localAngleB?: number
+    localAxisA?: Duplet
+    localOffsetB?: Duplet
+    localPivotA?: Duplet
+    localPivotB?: Duplet
+    lowerLimit?: number
+    maxForce?: number
+    maxTorque?: number
+    ratio?: number
+    upperLimit?: number
+    worldPivot?: Duplet
+  },
+]
 
 type AddContactMaterialProps = [
   materialA: MaterialOptions,
@@ -161,14 +176,14 @@ type AddContactMaterialProps = [
 export type RayMode = 'Closest' | 'Any' | 'All'
 
 type AddRayProps = {
-  from?: Duplet
+  from: Duplet
   mode: RayMode
-  to?: Duplet
+  to: Duplet
 } & Pick<RayOptionsImpl, 'checkCollisionResponse' | 'collisionGroup' | 'collisionMask' | 'skipBackfaces'>
 
 export type RayOptions = Omit<AddRayProps, 'mode'>
 
-type AtomicMessage<T extends AtomicName> = WithUUID<SetOpName<AtomicName>, PropValue<T>>
+type AtomicMessage<T extends AtomicName> = WithUUID<SetOpName<T>, AtomicProps[T]>
 type VectorMessage = WithUUID<SetOpName<VectorName>, Duplet>
 
 type SerializableBodyProps = {
@@ -210,7 +225,7 @@ export type WorkerCollideEvent = {
       contactNormal: number[]
       /** Contact point in world space */
       contactPoint: number[]
-      id: string
+      id: number
       impactVelocity: number
       ni: number[]
       ri: number[]
@@ -280,12 +295,12 @@ export type StepProps = {
 
 export type WorldProps = {
   allowSleep: boolean
-  axisIndex: number
+  axisIndex: 0 | 1 | 2
   broadphase: Broadphase
   defaultContactMaterial: ContactMaterialOptions
   gravity: Duplet
   iterations: number
-  normalIndex: number
+  normalIndex: 0 | 1 | 2
   quatNormalizeFast: boolean
   quatNormalizeSkip: number
   solver: Solver
@@ -296,9 +311,11 @@ type WorldMessage<T extends WorldPropName> = Operation<SetOpName<T>, WorldProps[
 
 export type CannonMessageMap = {
   addBodies: WithUUIDs<'addBodies', SerializableBodyProps[]> & { type: BodyShapeType }
-  addConstraint: WithUUID<'addConstraint', AddConstraintProps> & { type: 'Hinge' | ConstraintTypes }
+  addConstraint: WithUUID<'addConstraint', AddConstraintProps> & {
+    type: 'Prismatic' | 'Revolute' | ConstraintTypes
+  }
   addContactMaterial: WithUUID<'addContactMaterial', AddContactMaterialProps>
-  addKinematicCharacterController: WithUUIDs<
+  addKinematicCharacterController: WithUUID<
     'addKinematicCharacterController',
     [
       bodyUUID: string,
@@ -322,7 +339,7 @@ export type CannonMessageMap = {
       dstBetweenRays?: number,
     ]
   >
-  addPlatformController: WithUUIDs<
+  addPlatformController: WithUUID<
     'addPlatformController',
     [
       bodyUUID: string,
@@ -335,7 +352,7 @@ export type CannonMessageMap = {
   >
   addRay: WithUUID<'addRay', AddRayProps>
   addSpring: WithUUID<'addSpring', [uuidA: string, uuidB: string, options: SpringOptns]>
-  addTopDownVehicle: WithUUIDs<'addTopDownVehicle', [chassisBodyUUID: string, wheelInfos: WheelInfoOptions[]]>
+  addTopDownVehicle: WithUUID<'addTopDownVehicle', [chassisBodyUUID: string, wheelInfos: WheelInfoOptions[]]>
   applyForce: WithUUID<'applyForce', [force: Duplet, worldPoint: Duplet]>
   applyImpulse: WithUUID<'applyImpulse', [impulse: Duplet, worldPoint: Duplet]>
   applyLocalForce: WithUUID<'applyLocalForce', [force: Duplet, localPoint: Duplet]>
@@ -345,42 +362,34 @@ export type CannonMessageMap = {
     [value: number, wheelIndex: number]
   >
   applyTorque: WithUUID<'applyTorque', [torque: Duplet]>
-  disableConstraint: WithUUID<'disableConstraint'>
   disableConstraintMotor: WithUUID<'disableConstraintMotor'>
-  enableConstraint: WithUUID<'enableConstraint'>
   enableConstraintMotor: WithUUID<'enableConstraintMotor'>
   init: Operation<'init', WorldProps>
   removeBodies: WithUUIDs<'removeBodies'>
   removeConstraint: WithUUID<'removeConstraint'>
   removeContactMaterial: WithUUID<'removeContactMaterial'>
-  removeKinematicCharacterController: WithUUIDs<'removeKinematicCharacterController'>
-  removePlatformController: WithUUIDs<'removePlatformController'>
+  removeKinematicCharacterController: WithUUID<'removeKinematicCharacterController'>
+  removePlatformController: WithUUID<'removePlatformController'>
   removeRay: WithUUID<'removeRay'>
   removeSpring: WithUUID<'removeSpring'>
-  removeTopDownVehicle: WithUUIDs<'removeTopDownVehicle'>
+  removeTopDownVehicle: WithUUID<'removeTopDownVehicle'>
   setAllowSleep: AtomicMessage<'allowSleep'>
   setAngle: WithUUID<SetOpName<'angle'>, number>
   setAngularDamping: AtomicMessage<'angularDamping'>
-  setAngularFactor: VectorMessage
-  setAngularVelocity: VectorMessage
+  setAngularVelocity: AtomicMessage<'angularVelocity'>
   setAxisIndex: WorldMessage<'axisIndex'>
   setBroadphase: WorldMessage<'broadphase'>
   setCollisionFilterGroup: AtomicMessage<'collisionFilterGroup'>
   setCollisionFilterMask: AtomicMessage<'collisionFilterMask'>
   setCollisionResponse: AtomicMessage<'collisionResponse'>
-  setConstraintMotorMaxForce: WithUUID<'setConstraintMotorMaxForce', number>
   setConstraintMotorSpeed: WithUUID<'setConstraintMotorSpeed', number>
   setFixedRotation: AtomicMessage<'fixedRotation'>
   setGravity: WorldMessage<'gravity'>
   setIsTrigger: AtomicMessage<'isTrigger'>
   setIterations: WorldMessage<'iterations'>
-  setKinematicCharacterControllerInput: WithUUID<
-    'setKinematicCharacterControllerInput',
-    [input: [x: number, y: number]]
-  >
-  setKinematicCharacterControllerJump: WithUUID<'setKinematicCharacterControllerJump', [isDown: boolean]>
+  setKinematicCharacterControllerInput: WithUUID<'setKinematicCharacterControllerInput', Duplet>
+  setKinematicCharacterControllerJump: WithUUID<'setKinematicCharacterControllerJump', boolean>
   setLinearDamping: AtomicMessage<'linearDamping'>
-  setLinearFactor: VectorMessage
   setMass: AtomicMessage<'mass'>
   setMaterial: AtomicMessage<'material'>
   setPosition: VectorMessage
@@ -411,7 +420,11 @@ type OpName = keyof CannonMessageMap
 
 export type CannonMessageBody<T extends OpName> = Omit<CannonMessageMap[T], 'op'>
 
-type CannonMessage = CannonMessageMap[OpName]
+export type CannonMessageProps<T extends OpName> = CannonMessageMap[T] extends { props: unknown }
+  ? CannonMessageMap[T]['props']
+  : never
+export type CannonMessage = CannonMessageMap[OpName]
+
 export interface CannonWebWorker extends Worker {
   onmessage: (e: IncomingWorkerMessage) => void
   postMessage(message: CannonMessage, transfer: Transferable[]): void
@@ -424,7 +437,7 @@ export type ProviderContext = {
   events: CannonEvents
   refs: Refs
   subscriptions: Subscriptions
-  worker: CannonWorker
+  worker: CannonWorkerAPI
 }
 
 export type DebugApi = {
