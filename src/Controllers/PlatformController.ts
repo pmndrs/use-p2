@@ -1,7 +1,6 @@
-import type { Body } from 'p2-es'
+import type { Body, Vec2 } from 'p2-es'
 import { Ray, RaycastResult, vec2 } from 'p2-es'
 
-import type { Duplet } from './'
 import type KinematicCharacterController from './KinematicCharacterController'
 import type { RaycastControllerOptns } from './RaycastController'
 import RaycastController from './RaycastController'
@@ -25,7 +24,7 @@ const ZERO = vec2.create()
 interface PlatformControllerOptns extends RaycastControllerOptns {
   controllers: { [uuid: string]: { controller: KinematicCharacterController } }
   dstBetweenRays?: number
-  localWaypoints: Duplet[]
+  localWaypoints: Vec2[]
   passengerMask: number
   skinWidth?: number
   speed?: number
@@ -37,8 +36,8 @@ export default class PlatformController extends RaycastController {
   easeAmount: number
 
   fromWaypointIndex: number
-  globalWaypoints: Duplet[]
-  localWaypoints: Duplet[]
+  globalWaypoints: Vec2[]
+  localWaypoints: Vec2[]
 
   nextMoveTime: number
 
@@ -49,7 +48,7 @@ export default class PlatformController extends RaycastController {
 
   ray: Ray
   raycastResult: RaycastResult
-  raysData: [from: Duplet, to: Duplet, hitDistance?: number][]
+  raysData: [from: Vec2, to: Vec2, hitDistance?: number][]
 
   speed: number
 
@@ -105,7 +104,7 @@ export default class PlatformController extends RaycastController {
     this.world.on('postStep', () => this.update(1 / 60))
   }
 
-  calculatePassengerMovement(velocity: Duplet) {
+  calculatePassengerMovement(velocity: Vec2) {
     const movedPassengers = new Set()
     this.passengerMovement = []
 
@@ -255,7 +254,7 @@ export default class PlatformController extends RaycastController {
     }
   }
 
-  calculatePlatformMovement(deltaTime: number): Duplet {
+  calculatePlatformMovement(deltaTime: number): Vec2 {
     if (this.time < this.nextMoveTime) {
       return ZERO
     }
@@ -339,14 +338,14 @@ type PassengerMovementOptns = {
   moveBeforePlatform: boolean
   standingOnPlatform: boolean
   uuid: string
-  velocity: Duplet
+  velocity: Vec2
 }
 
 class PassengerMovement {
   moveBeforePlatform: boolean
   standingOnPlatform: boolean
   uuid: string
-  velocity: Duplet
+  velocity: Vec2
 
   constructor(options: PassengerMovementOptns) {
     this.velocity = options.velocity || [0, 0]

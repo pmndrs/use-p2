@@ -1,9 +1,9 @@
-import type { ContactMaterialOptions, MaterialOptions, RayOptions as RayOptionsImpl, Shape } from 'p2-es'
+import type { ContactMaterialOptions, RayOptions as RayOptionsImpl, Shape } from 'p2-es'
 import type { MutableRefObject } from 'react'
 import { createContext } from 'react'
 import type { Object3D } from 'three'
-import type { CannonWorkerAPI } from 'cannon-worker-api'
 
+import type { CannonWorkerAPI } from './cannon-worker-api'
 import type { AtomicProps, BodyProps, BodyShapeType } from './hooks'
 
 export type Duplet = [number, number]
@@ -12,6 +12,10 @@ export type Broadphase = 'Naive' | 'SAP'
 export type Solver = 'GS' | 'Split'
 export type Buffers = { positions: Float32Array; quaternions: Float32Array }
 export type Refs = { [uuid: string]: Object3D }
+
+export type MaterialOptions = {
+  id?: number | undefined;
+}
 
 export type ConstraintTypes = 'Distance' | 'Gear' | 'Lock' | 'Prismatic' | 'Revolute'
 

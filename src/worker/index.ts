@@ -39,7 +39,6 @@ function syncBodies() {
   state.bodies = state.world.bodies.reduce((bodies, body) => ({ ...bodies, [body.uuid!]: body }), {})
 }
 
-//const broadphases = { NaiveBroadphase, SAPBroadphase }
 const createMaterial = createMaterialFactory(state.materials)
 
 self.onmessage = ({ data }: { data: CannonMessage }) => {
@@ -139,8 +138,7 @@ self.onmessage = ({ data }: { data: CannonMessage }) => {
       break
     case 'setBroadphase':
       state.world.broadphase =
-        data.props === 'SAP' ? new SAPBroadphase(Broadphase.SAP) : new NaiveBroadphase(Broadphase.NAIVE)
-      //state.world.broadphase = new (broadphases[`${data.props}Broadphase`] || NaiveBroadphase)(state.world)
+        data.props === 'SAP' ? new SAPBroadphase() : new NaiveBroadphase()
       break
     case 'setAxisIndex':
       if (state.world.broadphase instanceof SAPBroadphase) {

@@ -1,4 +1,4 @@
-import type { ContactMaterialOptions, MaterialOptions } from 'p2-es'
+import type { ContactMaterialOptions } from 'p2-es'
 import type { DependencyList, MutableRefObject, Ref, RefObject } from 'react'
 import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { DynamicDrawUsage, InstancedMesh, MathUtils, Object3D } from 'three'
@@ -14,6 +14,7 @@ import type {
   Duplet,
   GearConstraintOpts,
   LockConstraintOpts,
+  MaterialOptions,
   PrismaticConstraintOpts,
   PropValue,
   ProviderContext,
