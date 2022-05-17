@@ -1,6 +1,6 @@
+import type { Vec2 } from 'p2-es'
 import { Ray, RaycastResult, vec2 } from 'p2-es'
 
-import type { Duplet } from './'
 import type { KinematicCharacterControllerOptns } from './KinematicCharacterController'
 import RaycastController from './RaycastController'
 
@@ -13,7 +13,7 @@ function sign(x: number) {
   return x >= 0 ? 1 : -1
 }
 
-function angle(a: Duplet, b: Duplet) {
+function angle(a: Vec2, b: Vec2) {
   return Math.acos(vec2.dot(a, b))
 }
 
@@ -37,13 +37,13 @@ export default class Controller extends RaycastController {
     right: boolean
     slopeAngle: number
     slopeAngleOld: number
-    velocityOld: Duplet
+    velocityOld: Vec2
   }
   maxClimbAngle: number
   maxDescendAngle: number
   ray: Ray
   raycastResult: RaycastResult
-  raysData: [from: Duplet, to: Duplet, hitPoint: [number, number]][]
+  raysData: [from: Vec2, to: Vec2, hitPoint: [number, number]][]
 
   constructor({
     world,
@@ -89,7 +89,7 @@ export default class Controller extends RaycastController {
     this.raysData = []
   }
 
-  climbSlope(velocity: Duplet, slopeAngle: number) {
+  climbSlope(velocity: Vec2, slopeAngle: number) {
     const collisions = this.collisions
     const moveDistance = Math.abs(velocity[0])
     const climbVelocityY = Math.sin(slopeAngle) * moveDistance
@@ -103,7 +103,7 @@ export default class Controller extends RaycastController {
     }
   }
 
-  descendSlope(velocity: Duplet) {
+  descendSlope(velocity: Vec2) {
     const raycastOrigins = this.raycastOrigins
     const directionX = sign(velocity[0])
     const collisions = this.collisions
@@ -139,7 +139,7 @@ export default class Controller extends RaycastController {
     this.raycastResult.reset()
   }
 
-  horizontalCollisions(velocity: Duplet) {
+  horizontalCollisions(velocity: Vec2) {
     const collisions = this.collisions
     const maxClimbAngle = this.maxClimbAngle
     const directionX = collisions.faceDir
@@ -201,7 +201,7 @@ export default class Controller extends RaycastController {
     }
   }
 
-  move(velocity: Duplet, input: Duplet, standingOnPlatform?: boolean) {
+  move(velocity: Vec2, input: Vec2, standingOnPlatform?: boolean) {
     const collisions = this.collisions
     this.updateRaycastOrigins()
     this.resetCollisions(velocity)
@@ -225,11 +225,11 @@ export default class Controller extends RaycastController {
     }
   }
 
-  moveWithZeroInput(velocity: Duplet, standingOnPlatform: boolean) {
+  moveWithZeroInput(velocity: Vec2, standingOnPlatform: boolean) {
     return this.move(velocity, ZERO, standingOnPlatform)
   }
 
-  resetCollisions(velocity: Duplet) {
+  resetCollisions(velocity: Vec2) {
     const collisions = this.collisions
 
     collisions.above = collisions.below = false
@@ -245,7 +245,7 @@ export default class Controller extends RaycastController {
     this.collisions.fallingThroughPlatform = false
   }
 
-  verticalCollisions(velocity: Duplet) {
+  verticalCollisions(velocity: Vec2) {
     const collisions = this.collisions
     const skinWidth = this.skinWidth
     const raycastOrigins = this.raycastOrigins

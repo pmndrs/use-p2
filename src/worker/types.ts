@@ -1,4 +1,4 @@
-import type { Body, ContactEquation } from 'p2-es'
+import type { Body, ContactEquation, Shape } from 'p2-es'
 
 import type { IncomingWorkerMessage } from '../setup'
 
@@ -9,13 +9,11 @@ export interface CannonWorkerGlobalScope extends ServiceWorkerGlobalScope {
   postMessage(message: IncomingWorkerMessage['data'], options?: StructuredSerializeOptions): void
 }
 
-export interface CannonCollideEvent {
-  bodyA: WithUUID<Body>
-  bodyB: WithUUID<Body>
-  contactEquation: any
-
-  body: WithUUID<Body>
-  contact: ContactEquation
-  target: WithUUID<Body>
-  type: 'collide'
+export interface ImpactEvent {
+  bodyA: WithUUID<Body>;
+  bodyB: WithUUID<Body>;
+  contactEquation: ContactEquation;
+  shapeA: Shape;
+  shapeB: Shape;
+  type: 'impact';
 }

@@ -1,4 +1,4 @@
-import { Spring } from 'p2-es'
+import { LinearSpring } from 'p2-es'
 
 import type { CannonMessageMap } from '../../setup'
 import type { State } from '../state'
@@ -11,7 +11,7 @@ export const addSpring = (
     uuid,
   }: CannonMessageMap['addSpring'],
 ) => {
-  const spring: WithUUID<Spring> = new Spring(state.bodies[bodyA], state.bodies[bodyB], {
+  const spring: WithUUID<LinearSpring> = new LinearSpring(state.bodies[bodyA], state.bodies[bodyB], {
     damping,
     localAnchorA,
     localAnchorB,

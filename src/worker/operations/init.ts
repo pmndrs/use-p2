@@ -1,9 +1,9 @@
 import type { Body } from 'p2-es'
-import { Broadphase, GSSolver, NaiveBroadphase, SAPBroadphase } from 'p2-es'
+import { GSSolver, NaiveBroadphase, SAPBroadphase } from 'p2-es'
 
 import type { CannonMessageProps } from '../../setup'
 import type { State } from '../state'
-import type { CannonCollideEvent, WithUUID } from '../types'
+import type { ImpactEvent, WithUUID } from '../types'
 
 type TwoBodies = {
   bodyA?: WithUUID<Body>
@@ -53,7 +53,7 @@ export const init = (
   }
 
   state.world.broadphase =
-    broadphase === 'SAP' ? new SAPBroadphase(Broadphase.SAP) : new NaiveBroadphase(Broadphase.NAIVE)
+    broadphase === 'SAP' ? new SAPBroadphase() : new NaiveBroadphase()
 
   if (state.world.broadphase instanceof SAPBroadphase) {
     state.world.broadphase.axisIndex = axisIndex
@@ -61,7 +61,7 @@ export const init = (
 
   state.world.on('beginContact', emitBeginContact)
   state.world.on('endContact', emitEndContact)
-  state.world.on('impact', (event: CannonCollideEvent) => {
+  state.world.on('impact', (event: ImpactEvent) => {
     const { bodyA, bodyB, contactEquation } = event
     const { normalA, contactPointA, contactPointB, index, shapeA, shapeB } = contactEquation
     const contactPoint = [bodyA.position[0] + contactPointA[0], bodyA.position[1] + contactPointA[1]]
