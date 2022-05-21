@@ -16,7 +16,7 @@ type GLTFResult = GLTF & {
 }
 
 export default function Model(props) {
-  const { nodes, materials } = useGLTF('/kenney_carKit/pylon.glb') as GLTFResult
+  const { nodes, materials } = useGLTF('/kenney_carkit/pylon.glb') as GLTFResult
 
   const [group] = useCircle(() => ({
     mass: 0.1,
@@ -36,4 +36,4 @@ export default function Model(props) {
   )
 }
 
-useGLTF.preload('/kenney_carKit//pylon.glb')
+useGLTF.preload('/kenney_carkit/pylon.glb')
