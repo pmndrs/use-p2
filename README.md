@@ -46,9 +46,9 @@ React hooks for [p2-es](https://github.com/pmndrs/p2-es). Use this in combinatio
 
 ## Demos
 
-Check out all of our examples at https://p2.pmnd.rs (coming soon)
+Check out all of our examples at https://p2.pmnd.rs
 
-Meanwhile look at the examples living in [./examples](./examples)
+The code for the examples can be found in [./examples](./examples)
 
 ## How it works
 
