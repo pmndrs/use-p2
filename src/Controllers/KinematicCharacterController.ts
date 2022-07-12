@@ -3,10 +3,9 @@
  * Original code from: https://github.com/SebLague/2DPlatformer-Tutorial
  */
 
-import type { Body, World } from 'p2-es'
+import type { Body, Vec2, World } from 'p2-es'
 import { vec2 } from 'p2-es'
 
-import type { Duplet } from './'
 import Controller from './Controller'
 
 function lerp(factor: number, start: number, end: number) {
@@ -28,9 +27,9 @@ export type KinematicCharacterControllerOptns = {
   timeToJumpApex?: number
   velocityXMin?: number
   velocityXSmoothing?: number
-  wallJumpClimb?: Duplet
-  wallJumpOff?: Duplet
-  wallLeap?: Duplet
+  wallJumpClimb?: Vec2
+  wallJumpOff?: Vec2
+  wallLeap?: Vec2
   wallSlideSpeedMax?: number
   wallStickTime?: number
   world: World
@@ -45,7 +44,7 @@ export default class KinematicCharacterController extends Controller {
 
   gravity: number
 
-  input: Duplet
+  input: Vec2
 
   maxJumpVelocity: number
   minJumpVelocity: number
@@ -54,13 +53,13 @@ export default class KinematicCharacterController extends Controller {
 
   timeToWallUnstick: number
 
-  velocity: Duplet
+  velocity: Vec2
   velocityXMin: number
   velocityXSmoothing: number
 
-  wallJumpClimb: Duplet
-  wallJumpOff: Duplet
-  wallLeap: Duplet
+  wallJumpClimb: Vec2
+  wallJumpOff: Vec2
+  wallLeap: Vec2
   wallSlideSpeedMax: number
   wallStickTime: number
 

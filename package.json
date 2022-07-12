@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "events": "^3.3.0",
-    "p2-es": "^0.7.3"
+    "p2-es": "^1.1.6"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
