@@ -1,9 +1,7 @@
-import type { Body, World } from 'p2-es'
+import type { Body, Vec2, World } from 'p2-es'
 import { AABB, EventEmitter, vec2 } from 'p2-es'
 
-import type { Duplet } from './'
-
-function expandAABB({ lowerBound, upperBound }: { lowerBound: Duplet; upperBound: Duplet }, amount: number) {
+function expandAABB({ lowerBound, upperBound }: { lowerBound: Vec2; upperBound: Vec2 }, amount: number) {
   const halfAmount = amount * 0.5
   lowerBound[0] -= halfAmount
   lowerBound[1] -= halfAmount
@@ -27,10 +25,10 @@ export default class RaycastController extends EventEmitter {
   horizontalRayCount: number
   horizontalRaySpacing: number
   raycastOrigins: {
-    bottomLeft: Duplet
-    bottomRight: Duplet
-    topLeft: Duplet
-    topRight: Duplet
+    bottomLeft: Vec2
+    bottomRight: Vec2
+    topLeft: Vec2
+    topRight: Vec2
   }
   skinWidth: number
   verticalRayCount: number
