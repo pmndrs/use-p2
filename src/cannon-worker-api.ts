@@ -362,6 +362,10 @@ export class CannonWorkerAPI extends EventEmitter {
     this.worker.postMessage({ op: 'setConstraintMotorSpeed', props, uuid })
   }
 
+  setDamping({ props, uuid }: CannonMessageBody<'setDamping'>): void {
+    this.worker.postMessage({ op: 'setDamping', props, uuid })
+  }
+
   setFixedRotation({ props, uuid }: CannonMessageBody<'setFixedRotation'>): void {
     this.worker.postMessage({ op: 'setFixedRotation', props, uuid })
   }
@@ -382,10 +386,6 @@ export class CannonWorkerAPI extends EventEmitter {
     uuid,
   }: CannonMessageBody<'setKinematicCharacterControllerJump'>): void {
     this.worker.postMessage({ op: 'setKinematicCharacterControllerJump', props, uuid })
-  }
-
-  setLinearDamping({ props, uuid }: CannonMessageBody<'setLinearDamping'>): void {
-    this.worker.postMessage({ op: 'setLinearDamping', props, uuid })
   }
 
   setMass({ props, uuid }: CannonMessageBody<'setMass'>): void {

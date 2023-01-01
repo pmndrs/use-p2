@@ -3,7 +3,6 @@
 /// <reference lib="webworker" />
 
 import {
-  Broadphase,
   GSSolver,
   NaiveBroadphase,
   PrismaticConstraint,
@@ -90,7 +89,7 @@ self.onmessage = ({ data }: { data: CannonMessage }) => {
       // todo material is per shape not per body
       //state.bodies[data.uuid].material = data.props ? createMaterial(data.props) : null
       break
-    case 'setLinearDamping':
+    case 'setDamping':
       state.bodies[data.uuid].damping = data.props
       break
     case 'setAngularDamping':

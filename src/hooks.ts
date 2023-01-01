@@ -40,9 +40,9 @@ export type AtomicProps = {
   collisionFilterGroup: number
   collisionFilterMask: number
   collisionResponse: boolean
+  damping: number
   fixedRotation: boolean
   isTrigger: boolean
-  linearDamping: number
   mass: number
   material: MaterialOptions
   sleepSpeedLimit: number
@@ -318,9 +318,9 @@ function useBody<B extends BodyProps<unknown[]>>(
         collisionFilterGroup: makeAtomic('collisionFilterGroup', index),
         collisionFilterMask: makeAtomic('collisionFilterMask', index),
         collisionResponse: makeAtomic('collisionResponse', index),
+        damping: makeAtomic('damping', index),
         fixedRotation: makeAtomic('fixedRotation', index),
         isTrigger: makeAtomic('isTrigger', index),
-        linearDamping: makeAtomic('linearDamping', index),
         mass: makeAtomic('mass', index),
         material: makeAtomic('material', index),
         position: makeVec('position', index),

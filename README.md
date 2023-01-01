@@ -251,9 +251,9 @@ type AtomicName =
   | 'collisionGroup'
   | 'collisionMask'
   | 'collisionResponse'
+  | 'damping'
   | 'fixedRotation'
   | 'isTrigger'
-  | 'linearDamping'
   | 'mass'
   | 'material'
   | 'sleepSpeedLimit'
@@ -359,9 +359,9 @@ type AtomicProps = {
   collisionFilterGroup: number
   collisionFilterMask: number
   collisionResponse: number
+  damping: number
   fixedRotation: boolean
   isTrigger: boolean
-  linearDamping: number
   mass: number
   material: MaterialOptions
   sleepSpeedLimit: number

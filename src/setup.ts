@@ -123,9 +123,9 @@ export const atomicNames = [
   'collisionFilterGroup',
   'collisionFilterMask',
   'collisionResponse',
+  'damping',
   'fixedRotation',
   'isTrigger',
-  'linearDamping',
   'mass',
   'material',
   'sleepSpeedLimit',
@@ -387,13 +387,13 @@ export type CannonMessageMap = {
   setCollisionFilterMask: AtomicMessage<'collisionFilterMask'>
   setCollisionResponse: AtomicMessage<'collisionResponse'>
   setConstraintMotorSpeed: WithUUID<'setConstraintMotorSpeed', number>
+  setDamping: AtomicMessage<'damping'>
   setFixedRotation: AtomicMessage<'fixedRotation'>
   setGravity: WorldMessage<'gravity'>
   setIsTrigger: AtomicMessage<'isTrigger'>
   setIterations: WorldMessage<'iterations'>
   setKinematicCharacterControllerInput: WithUUID<'setKinematicCharacterControllerInput', Duplet>
   setKinematicCharacterControllerJump: WithUUID<'setKinematicCharacterControllerJump', boolean>
-  setLinearDamping: AtomicMessage<'linearDamping'>
   setMass: AtomicMessage<'mass'>
   setMaterial: AtomicMessage<'material'>
   setPosition: VectorMessage
